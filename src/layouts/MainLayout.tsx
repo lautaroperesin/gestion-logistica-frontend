@@ -13,6 +13,7 @@ export const MainLayout = () => {
     { path: "/", label: "Dashboard", icon: BarChart3 },
     { path: "/clientes", label: "Clientes", icon: Users },
     { path: "/envios", label: "Envíos", icon: Package },
+    { path: "/conductores", label: "Conductores", icon: Users }
   ];
 
   return (

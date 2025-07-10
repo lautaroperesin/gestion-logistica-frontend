@@ -4,9 +4,9 @@ import { ArrowLeft, Save, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useClientes } from "../hooks";
-import { fetchClienteById } from "../services";
-import type { CreateClienteDto, UpdateClienteDto } from "../types";
+import { useClientes } from "../hooks/useClientes";
+import { fetchClienteById } from "../services/clientesService";
+import type { CreateClienteDto, UpdateClienteDto } from "@/api";
 
 export const ClienteFormPage = () => {
   const navigate = useNavigate();

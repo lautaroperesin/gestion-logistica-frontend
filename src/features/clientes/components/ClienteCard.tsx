@@ -1,5 +1,5 @@
 import { Edit2, Trash2, Mail, Phone, User } from 'lucide-react';;
-import type { ClienteDto } from "../types";
+import type { ClienteDto } from "@/api";
 
 interface ClienteCardProps {
   cliente: ClienteDto;

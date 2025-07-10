@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchClientes, createCliente, updateCliente, deleteCliente } from '../services';
-import type { ClienteDto, CreateClienteDto, UpdateClienteDto, ClienteDtoPagedResult } from '../types';
+import type { ClienteDto, CreateClienteDto, UpdateClienteDto, ClienteDtoPagedResult } from '@/api';
 
 export const useClientes = (initialPageSize: number = 10) => {
   const [clientes, setClientes] = useState<ClienteDto[]>([]);

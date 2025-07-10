@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import { ClientesPage, ClienteFormPage } from '../features/clientes/pages';
+import { ClientesPage } from '../features/clientes/pages/ClientesListPage';
+import { ClienteFormPage } from '../features/clientes/pages/ClienteFormPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
 import { MainLayout } from '@/layouts/MainLayout';
 import { EnviosPage } from '../features/envios/pages/EnviosPage';
