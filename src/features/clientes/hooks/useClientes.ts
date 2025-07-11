@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchClientes, createCliente, updateCliente, deleteCliente } from '../services';
+import { fetchClientes, createCliente, updateCliente, deleteCliente } from '../services/clientesService';
 import type { ClienteDto, CreateClienteDto, UpdateClienteDto, ClienteDtoPagedResult } from '@/api';
 
 export const useClientes = (initialPageSize: number = 10) => {
