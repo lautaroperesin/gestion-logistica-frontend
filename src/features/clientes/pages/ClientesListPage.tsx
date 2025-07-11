@@ -86,9 +86,6 @@ export const ClientesPage = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button onClick={handleRefresh} variant="outline" size="sm">
-            Actualizar
-          </Button>
           <Button asChild>
             <Link to="/clientes/nuevo">
               <Plus className="h-4 w-4 mr-2" />
