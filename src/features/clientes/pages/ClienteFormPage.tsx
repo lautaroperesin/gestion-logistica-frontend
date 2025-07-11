@@ -84,6 +84,7 @@ export const ClienteFormPage = () => {
     try {
       if (isEditing && id) {
         const updateData: UpdateClienteDto = {
+          idCliente: parseInt(id),
           nombre: formData.nombre.trim(),
           email: formData.email.trim() || "",
           telefono: formData.telefono.trim() || "",
