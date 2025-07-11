@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ArrowLeft, Save, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +10,27 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useVehiculos } from "../hooks/useVehiculos";
 import { fetchVehiculoById } from "../services/vehiculosService";
 import type { CreateVehiculoDto, UpdateVehiculoDto, EstadoVehiculo } from "@/api";
+
+// Esquema de validación con Zod
+const vehiculoSchema = z.object({
+  marca: z.string().min(1, "La marca es requerida").trim(),
+  modelo: z.string().min(1, "El modelo es requerido").trim(),
+  patente: z.string().min(1, "La patente es requerida").max(8, "La patente no puede exceder 8 caracteres").trim(),
+  capacidadCarga: z.number().positive("La capacidad de carga debe ser mayor a 0"),
+  estado: z.number().min(1).max(4),
+  ultimaInspeccion: z.string().min(1, "La fecha de última inspección es requerida"),
+  rtoVencimiento: z.string().min(1, "La fecha de vencimiento del RTO es requerida")
+}).refine((data) => {
+  const rtoDate = new Date(data.rtoVencimiento);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return rtoDate > today;
+}, {
+  message: "La fecha de vencimiento del RTO debe ser futura",
+  path: ["rtoVencimiento"]
+});
+
+type VehiculoFormData = z.infer<typeof vehiculoSchema>;
 
 export const VehiculoFormPage = () => {
   const navigate = useNavigate();
@@ -18,15 +42,21 @@ export const VehiculoFormPage = () => {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    marca: '',
-    modelo: '',
-    patente: '',
-    capacidadCarga: '',
-    estado: 1 as EstadoVehiculo,
-    ultimaInspeccion: '',
-    rtoVencimiento: ''
+
+  const form = useForm<VehiculoFormData>({
+    resolver: zodResolver(vehiculoSchema),
+    defaultValues: {
+      marca: '',
+      modelo: '',
+      patente: '',
+      capacidadCarga: 0,
+      estado: 1 as EstadoVehiculo,
+      ultimaInspeccion: '',
+      rtoVencimiento: ''
+    }
   });
+
+  const { register, handleSubmit, formState: { errors }, setValue } = form;
 
   // Cargar datos del vehiculo si estamos editando
   useEffect(() => {
@@ -39,19 +69,19 @@ export const VehiculoFormPage = () => {
     try {
       setLoadingData(true);
       const vehiculo = await fetchVehiculoById(vehiculoId);
-      setFormData({
-        marca: vehiculo.marca || '',
-        modelo: vehiculo.modelo || '',
-        patente: vehiculo.patente || '',
-        capacidadCarga: vehiculo.capacidadCarga?.toString() || '',
-        estado: vehiculo.estado || 1,
-        ultimaInspeccion: vehiculo.ultimaInspeccion 
-          ? new Date(vehiculo.ultimaInspeccion).toISOString().split('T')[0] 
-          : '',
-        rtoVencimiento: vehiculo.rtoVencimiento 
-          ? new Date(vehiculo.rtoVencimiento).toISOString().split('T')[0] 
-          : ''
-      });
+      
+      // Cargar datos en el formulario usando setValue
+      setValue('marca', vehiculo.marca || '');
+      setValue('modelo', vehiculo.modelo || '');
+      setValue('patente', vehiculo.patente || '');
+      setValue('capacidadCarga', vehiculo.capacidadCarga || 0);
+      setValue('estado', vehiculo.estado || 1);
+      setValue('ultimaInspeccion', vehiculo.ultimaInspeccion 
+        ? new Date(vehiculo.ultimaInspeccion).toISOString().split('T')[0] 
+        : '');
+      setValue('rtoVencimiento', vehiculo.rtoVencimiento 
+        ? new Date(vehiculo.rtoVencimiento).toISOString().split('T')[0] 
+        : '');
     } catch (err) {
       setError("Error al cargar los datos del vehículo");
     } finally {
@@ -59,56 +89,7 @@ export const VehiculoFormPage = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    // Limpiar error al empezar a escribir
-    if (error) setError(null);
-  };
-
-  const validateForm = () => {
-    if (!formData.marca.trim()) {
-      setError("La marca es requerida");
-      return false;
-    }
-    if (!formData.modelo.trim()) {
-      setError("El modelo es requerido");
-      return false;
-    }
-    if (!formData.patente.trim()) {
-      setError("La patente es requerida");
-      return false;
-    }
-    if (!formData.capacidadCarga.trim() || isNaN(Number(formData.capacidadCarga))) {
-      setError("La capacidad de carga debe ser un número válido");
-      return false;
-    }
-    if (Number(formData.capacidadCarga) <= 0) {
-      setError("La capacidad de carga debe ser mayor a 0");
-      return false;
-    }
-    if (!formData.ultimaInspeccion) {
-      setError("La fecha de última inspección es requerida");
-      return false;
-    }
-    if (!formData.rtoVencimiento) {
-      setError("La fecha de vencimiento del RTO es requerida");
-      return false;
-    }
-    if (new Date(formData.rtoVencimiento) <= new Date()) {
-      setError("La fecha de vencimiento del RTO debe ser futura");
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
+  const onSubmit = async (data: VehiculoFormData) => {
     setLoading(true);
     setError(null);
 
@@ -116,13 +97,13 @@ export const VehiculoFormPage = () => {
       if (isEditing && id) {
         const updateData: UpdateVehiculoDto = {
           idVehiculo: parseInt(id),
-          marca: formData.marca.trim(),
-          modelo: formData.modelo.trim(),
-          patente: formData.patente.trim(),
-          capacidadCarga: Number(formData.capacidadCarga),
-          estado: formData.estado,
-          ultimaInspeccion: new Date(formData.ultimaInspeccion),
-          rtoVencimiento: new Date(formData.rtoVencimiento)
+          marca: data.marca,
+          modelo: data.modelo,
+          patente: data.patente.toUpperCase(),
+          capacidadCarga: data.capacidadCarga,
+          estado: data.estado as EstadoVehiculo,
+          ultimaInspeccion: new Date(data.ultimaInspeccion),
+          rtoVencimiento: new Date(data.rtoVencimiento)
         };
         
         const success = await updateExistingVehiculo(parseInt(id), updateData);
@@ -131,13 +112,13 @@ export const VehiculoFormPage = () => {
         }
       } else {
         const createData: CreateVehiculoDto = {
-          marca: formData.marca.trim(),
-          modelo: formData.modelo.trim(),
-          patente: formData.patente.trim(),
-          capacidadCarga: Number(formData.capacidadCarga),
-          estado: formData.estado,
-          ultimaInspeccion: new Date(formData.ultimaInspeccion),
-          rtoVencimiento: new Date(formData.rtoVencimiento)
+          marca: data.marca,
+          modelo: data.modelo,
+          patente: data.patente.toUpperCase(),
+          capacidadCarga: data.capacidadCarga,
+          estado: data.estado as EstadoVehiculo,
+          ultimaInspeccion: new Date(data.ultimaInspeccion),
+          rtoVencimiento: new Date(data.rtoVencimiento)
         };
         
         const success = await createNewVehiculo(createData);
@@ -215,7 +196,7 @@ export const VehiculoFormPage = () => {
           <CardTitle className="text-xl font-bold text-gray-900">Información del Vehículo</CardTitle>
         </CardHeader>
         <CardContent className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* Marca */}
               <div className="space-y-2">
@@ -225,12 +206,13 @@ export const VehiculoFormPage = () => {
                 <input
                   id="marca"
                   type="text"
-                  value={formData.marca}
-                  onChange={(e) => handleInputChange("marca", e.target.value)}
+                  {...register("marca")}
                   placeholder="Ej: Ford, Chevrolet, etc."
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                  required
                 />
+                {errors.marca && (
+                  <p className="text-sm text-red-600">{errors.marca.message}</p>
+                )}
               </div>
 
               {/* Modelo */}
@@ -241,12 +223,13 @@ export const VehiculoFormPage = () => {
                 <input
                   id="modelo"
                   type="text"
-                  value={formData.modelo}
-                  onChange={(e) => handleInputChange("modelo", e.target.value)}
+                  {...register("modelo")}
                   placeholder="Ej: Transit, Master, etc."
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                  required
                 />
+                {errors.modelo && (
+                  <p className="text-sm text-red-600">{errors.modelo.message}</p>
+                )}
               </div>
 
               {/* Patente */}
@@ -257,13 +240,18 @@ export const VehiculoFormPage = () => {
                 <input
                   id="patente"
                   type="text"
-                  value={formData.patente}
-                  onChange={(e) => handleInputChange("patente", e.target.value.toUpperCase())}
+                  {...register("patente", {
+                    onChange: (e) => {
+                      e.target.value = e.target.value.toUpperCase();
+                    }
+                  })}
                   placeholder="ABC123"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all font-mono text-center"
-                  required
                   maxLength={8}
                 />
+                {errors.patente && (
+                  <p className="text-sm text-red-600">{errors.patente.message}</p>
+                )}
               </div>
 
               {/* Capacidad de Carga */}
@@ -274,13 +262,14 @@ export const VehiculoFormPage = () => {
                 <input
                   id="capacidadCarga"
                   type="number"
-                  value={formData.capacidadCarga}
-                  onChange={(e) => handleInputChange("capacidadCarga", e.target.value)}
+                  {...register("capacidadCarga", { valueAsNumber: true })}
                   placeholder="1000"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                  required
                   min="1"
                 />
+                {errors.capacidadCarga && (
+                  <p className="text-sm text-red-600">{errors.capacidadCarga.message}</p>
+                )}
               </div>
 
               {/* Estado */}
@@ -290,16 +279,17 @@ export const VehiculoFormPage = () => {
                 </label>
                 <select
                   id="estado"
-                  value={formData.estado}
-                  onChange={(e) => handleInputChange("estado", Number(e.target.value))}
+                  {...register("estado", { valueAsNumber: true })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                  required
                 >
                   <option value={1}>🟢 Disponible</option>
                   <option value={2}>🔵 En servicio</option>
                   <option value={3}>🟡 En mantenimiento</option>
                   <option value={4}>🔴 Fuera de servicio</option>
                 </select>
+                {errors.estado && (
+                  <p className="text-sm text-red-600">{errors.estado.message}</p>
+                )}
               </div>
 
               {/* Última Inspección */}
@@ -310,11 +300,12 @@ export const VehiculoFormPage = () => {
                 <input
                   id="ultimaInspeccion"
                   type="date"
-                  value={formData.ultimaInspeccion}
-                  onChange={(e) => handleInputChange("ultimaInspeccion", e.target.value)}
+                  {...register("ultimaInspeccion")}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                  required
                 />
+                {errors.ultimaInspeccion && (
+                  <p className="text-sm text-red-600">{errors.ultimaInspeccion.message}</p>
+                )}
               </div>
 
               {/* RTO Vencimiento */}
@@ -325,12 +316,13 @@ export const VehiculoFormPage = () => {
                 <input
                   id="rtoVencimiento"
                   type="date"
-                  value={formData.rtoVencimiento}
-                  onChange={(e) => handleInputChange("rtoVencimiento", e.target.value)}
+                  {...register("rtoVencimiento")}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                  required
                   min={new Date().toISOString().split('T')[0]}
                 />
+                {errors.rtoVencimiento && (
+                  <p className="text-sm text-red-600">{errors.rtoVencimiento.message}</p>
+                )}
               </div>
             </div>
 

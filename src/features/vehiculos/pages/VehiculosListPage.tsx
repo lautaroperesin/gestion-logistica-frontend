@@ -84,38 +84,6 @@ export const VehiculosPage = () => {
             <p className="text-gray-600 mt-1">Gestiona tu flota de vehículos</p>
           </div>
         </div>
-        
-        <div className="flex gap-3">
-          <Button onClick={handleRefresh} variant="outline" size="sm" className="shadow-sm">
-            Actualizar
-          </Button>
-          <Button asChild className="shadow-md bg-green-500 hover:to-green-600">
-            <Link to="/vehiculos/nuevo">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Vehículo
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="relative flex-1 max-w-lg">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar vehículos por marca, modelo o patente..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-3 w-full border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
-          />
-        </div>
-        
-        {searchTerm && (
-          <div className="text-sm text-gray-600 font-medium">
-            {filteredVehiculos.length} de {vehiculos.length} vehículos
-          </div>
-        )}
       </div>
 
       {/* Stats Cards */}
@@ -201,6 +169,35 @@ export const VehiculosPage = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+       {/* Search Bar */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="relative flex-1 max-w-lg">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar vehículos por marca, modelo o patente..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-3 w-full border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+          />
+        </div>
+        
+        {searchTerm && (
+          <div className="text-sm text-gray-600 font-medium">
+            {filteredVehiculos.length} de {vehiculos.length} vehículos
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button asChild className="shadow-md bg-green-500 hover:to-green-600">
+            <Link to="/vehiculos/nuevo">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Vehículo
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Vehiculos Grid */}
