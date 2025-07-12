@@ -15,6 +15,7 @@ export const MainLayout = () => {
     { path: "/conductores", label: "Conductores", icon: UserCheck },
     { path: "/vehiculos", label: "Vehículos", icon: Truck },
     { path: "/envios", label: "Envíos", icon: Package },
+    { path: "/tipos-carga", label: "Tipos de Carga", icon: Package },
   ];
 
   return (

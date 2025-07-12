@@ -8,6 +8,8 @@ import { ConductoresPage } from '@/features/conductores/pages/ConductoresListPag
 import { ConductorFormPageNew } from '@/features/conductores/pages/ConductorFormPageNew';
 import { VehiculosPage } from '@/features/vehiculos/pages/VehiculosListPage';
 import { VehiculoFormPage } from '@/features/vehiculos/pages/VehiculoFormPage';
+import { TiposCargaListPage } from '@/features/tiposCarga/pages/TiposCargaListPage';
+import { TipoCargaFormPage } from '@/features/tiposCarga/pages/TipoCargaFormPage';
 
 export const AppRoutes = () => {
   return (
@@ -24,6 +26,11 @@ export const AppRoutes = () => {
         <Route path="vehiculos/nuevo" element={<VehiculoFormPage />} />
         <Route path="vehiculos/editar/:id" element={<VehiculoFormPage />} />
         <Route path="envios" element={<EnviosPage />} />
+        {/* <Route path="envios/nuevo" element={<EnviosPage />} />
+        <Route path="envios/editar/:id" element={<EnviosPage />} /> */}
+        <Route path="tipos-carga" element={<TiposCargaListPage />} />
+        <Route path="tipos-carga/nuevo" element={<TipoCargaFormPage />} />
+        <Route path="tipos-carga/editar/:id" element={<TipoCargaFormPage />} />
         
       </Route>
     </Routes>
