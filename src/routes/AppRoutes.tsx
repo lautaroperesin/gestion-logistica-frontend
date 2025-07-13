@@ -10,6 +10,8 @@ import { VehiculosPage } from '@/features/vehiculos/pages/VehiculosListPage';
 import { VehiculoFormPage } from '@/features/vehiculos/pages/VehiculoFormPage';
 import { TiposCargaListPage } from '@/features/tiposCarga/pages/TiposCargaListPage';
 import { TipoCargaFormPage } from '@/features/tiposCarga/pages/TipoCargaFormPage';
+import UbicacionesListPage from '@/features/ubicaciones/pages/UbicacionesListPage';
+import UbicacionFormPage from '@/features/ubicaciones/pages/UbicacionFormPage';
 
 export const AppRoutes = () => {
   return (
@@ -31,6 +33,9 @@ export const AppRoutes = () => {
         <Route path="tipos-carga" element={<TiposCargaListPage />} />
         <Route path="tipos-carga/nuevo" element={<TipoCargaFormPage />} />
         <Route path="tipos-carga/editar/:id" element={<TipoCargaFormPage />} />
+        <Route path="ubicaciones" element={<UbicacionesListPage />} />
+        <Route path="ubicaciones/nuevo" element={<UbicacionFormPage />} />
+        <Route path="ubicaciones/editar/:id" element={<UbicacionFormPage />} />
         
       </Route>
     </Routes>

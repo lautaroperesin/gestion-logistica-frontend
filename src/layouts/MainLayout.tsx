@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Users, Package, BarChart3, UserCheck, Truck } from "lucide-react";
+import { Users, Package, BarChart3, UserCheck, Truck, MapPin } from "lucide-react";
 
 export const MainLayout = () => {
   const location = useLocation();
@@ -16,6 +16,7 @@ export const MainLayout = () => {
     { path: "/vehiculos", label: "Vehículos", icon: Truck },
     { path: "/envios", label: "Envíos", icon: Package },
     { path: "/tipos-carga", label: "Tipos de Carga", icon: Package },
+    { path: "/ubicaciones", label: "Ubicaciones", icon: MapPin },
   ];
 
   return (
