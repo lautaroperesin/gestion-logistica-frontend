@@ -56,7 +56,7 @@ export default function UbicacionesTable({ ubicaciones, onEdit, onDelete, loadin
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Provincia</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">País</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Dirección Completa</th>
-                <th className="text-right py-3 px-4 font-medium text-gray-900">Descripción</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Descripción</th>
                 <th className="text-right py-3 px-4 font-medium text-gray-900">Acciones</th>
               </tr>
             </thead>
