@@ -4,6 +4,7 @@ import { ClienteFormPage } from '../features/clientes/pages/ClienteFormPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
 import { MainLayout } from '@/layouts/MainLayout';
 import { EnviosPage } from '../features/envios/pages/EnviosPage';
+import { EnvioFormPage } from '../features/envios/pages/EnvioFormPage';
 import { ConductoresPage } from '@/features/conductores/pages/ConductoresListPage';
 import { ConductorFormPageNew } from '@/features/conductores/pages/ConductorFormPageNew';
 import { VehiculosPage } from '@/features/vehiculos/pages/VehiculosListPage';
@@ -28,8 +29,8 @@ export const AppRoutes = () => {
         <Route path="vehiculos/nuevo" element={<VehiculoFormPage />} />
         <Route path="vehiculos/editar/:id" element={<VehiculoFormPage />} />
         <Route path="envios" element={<EnviosPage />} />
-        {/* <Route path="envios/nuevo" element={<EnviosPage />} />
-        <Route path="envios/editar/:id" element={<EnviosPage />} /> */}
+        <Route path="envios/nuevo" element={<EnvioFormPage />} />
+        <Route path="envios/editar/:id" element={<EnvioFormPage />} />
         <Route path="tipos-carga" element={<TiposCargaListPage />} />
         <Route path="tipos-carga/nuevo" element={<TipoCargaFormPage />} />
         <Route path="tipos-carga/editar/:id" element={<TipoCargaFormPage />} />
