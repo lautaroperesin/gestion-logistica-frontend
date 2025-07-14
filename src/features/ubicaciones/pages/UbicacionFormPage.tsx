@@ -14,6 +14,7 @@ import type { PaisDto, ProvinciaDto, LocalidadDto } from '@/api';
 // Schema de validación
 const ubicacionSchema = z.object({
   direccion: z.string().min(1, 'La dirección es requerida'),
+  descripcion: z.string().optional(),
   paisId: z.number().min(1, 'El país es requerido'),
   provinciaId: z.number().min(1, 'La provincia es requerida'),
   localidadId: z.number().min(1, 'La localidad es requerida'),
@@ -39,6 +40,7 @@ export default function UbicacionFormPage() {
     resolver: zodResolver(ubicacionSchema),
     defaultValues: {
       direccion: '',
+      descripcion: '',
       paisId: 0,
       provinciaId: 0,
       localidadId: 0,
@@ -53,6 +55,7 @@ export default function UbicacionFormPage() {
   useEffect(() => {
     if (isEditing && ubicacion) {
       setValue('direccion', ubicacion.direccion || '');
+      setValue('descripcion', ubicacion.descripcion || '');
       if (ubicacion.localidad?.provincia?.pais?.idPais) {
         setValue('paisId', ubicacion.localidad.provincia.pais.idPais);
       }
@@ -71,10 +74,12 @@ export default function UbicacionFormPage() {
         await updateUbicacion(parseInt(id), {
             idUbicacion: parseInt(id),
             direccion: data.direccion,
+            descripcion: data.descripcion
         });
       } else {
         await createUbicacion({
           direccion: data.direccion,
+          descripcion: data.descripcion,
           idLocalidad: data.localidadId,
         });
       }
@@ -185,6 +190,18 @@ export default function UbicacionFormPage() {
               {errors.direccion && (
                 <p className="text-red-600 text-sm mt-1">{errors.direccion.message}</p>
               )}
+            </div>
+
+            {/* Descripcion */}
+            <div>
+              <Label htmlFor="descripcion">Descripción</Label>
+              <input
+                {...register('descripcion')}
+                type="text"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Ingresa una descripción opcional"
+                disabled={isSubmitting}
+              />
             </div>
 
             {/* Botones */}
