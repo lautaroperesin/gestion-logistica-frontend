@@ -13,6 +13,9 @@ import { TiposCargaListPage } from '@/features/tiposCarga/pages/TiposCargaListPa
 import { TipoCargaFormPage } from '@/features/tiposCarga/pages/TipoCargaFormPage';
 import UbicacionesListPage from '@/features/ubicaciones/pages/UbicacionesListPage';
 import UbicacionFormPage from '@/features/ubicaciones/pages/UbicacionFormPage';
+import { FacturasPage } from '@/features/facturas/pages/FacturasPage';
+import { FacturaFormPage } from '@/features/facturas/pages/FacturaFormPage';
+import { MovimientosCajaPage } from '@/features/movimientos-caja/pages/MovimientosCajaPage';
 
 export const AppRoutes = () => {
   return (
@@ -37,6 +40,10 @@ export const AppRoutes = () => {
         <Route path="ubicaciones" element={<UbicacionesListPage />} />
         <Route path="ubicaciones/nuevo" element={<UbicacionFormPage />} />
         <Route path="ubicaciones/editar/:id" element={<UbicacionFormPage />} />
+        <Route path="facturas" element={<FacturasPage />} />
+        <Route path="facturas/nueva" element={<FacturaFormPage />} />
+        <Route path="facturas/editar/:id" element={<FacturaFormPage />} />
+        <Route path="movimientos-caja" element={<MovimientosCajaPage />} />
         
       </Route>
     </Routes>
