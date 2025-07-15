@@ -5,6 +5,7 @@ import { Alert } from '@/components/ui/alert';
 import { Plus, Package } from 'lucide-react';
 import { useEnvios, useEnviosCrud } from '../hooks/useEnvios';
 import { EnviosTable } from '../components/EnviosTable';
+import { EnvioDetailsModal } from '../components/EnvioDetailsModal';
 import type { EnvioDto } from '@/api';
 
 export const EnviosPage = () => {
@@ -14,6 +15,8 @@ export const EnviosPage = () => {
   
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [selectedEnvio, setSelectedEnvio] = useState<EnvioDto | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const handleCreate = () => {
     navigate('/envios/nuevo');
@@ -26,9 +29,8 @@ export const EnviosPage = () => {
   };
 
   const handleView = (envio: EnvioDto) => {
-    if (envio.idEnvio) {
-      navigate(`/envios/${envio.idEnvio}`);
-    }
+    setSelectedEnvio(envio);
+    setShowDetailsModal(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -105,6 +107,13 @@ export const EnviosPage = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de detalles */}
+      <EnvioDetailsModal
+        envio={selectedEnvio}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+      />
     </div>
   );
 };
