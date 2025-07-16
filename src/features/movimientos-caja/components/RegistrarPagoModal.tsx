@@ -13,8 +13,10 @@ import {
 } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
 import { Label } from '../../../components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { useCreateMovimiento, useMetodosPago } from '../hooks/useMovimientosCaja';
+import { Alert, AlertDescription } from '../../../components/ui/alert';
+import { CheckCircle, AlertCircle } from 'lucide-react';
+import { MetodoPagoSelector } from '../../metodos-pago/components/MetodoPagoSelector';
+import { useCreateMovimiento, useMovimientosByFactura } from '../hooks/useMovimientosCaja';
 import type { FacturaDto } from '../../../api';
 
 const pagoSchema = z.object({
@@ -38,8 +40,16 @@ export const RegistrarPagoModal = ({
   onOpenChange, 
   onSuccess 
 }: RegistrarPagoModalProps) => {
-  const { data: metodosPago = [], isLoading: loadingMetodos } = useMetodosPago();
   const createMovimiento = useCreateMovimiento();
+  
+  // Obtener movimientos existentes de esta factura
+  const { data: movimientosPrevios = [] } = useMovimientosByFactura(factura.idFactura || 0);
+
+  // Calcular totales
+  const totalFactura = factura.total || 0;
+  const totalPagado = movimientosPrevios.reduce((sum, mov) => sum + (mov.monto || 0), 0);
+  const saldoPendiente = totalFactura - totalPagado;
+  const estaCompletamentePagada = saldoPendiente <= 0;
 
   const {
     register,
@@ -51,7 +61,7 @@ export const RegistrarPagoModal = ({
   } = useForm<PagoFormData>({
     resolver: zodResolver(pagoSchema),
     defaultValues: {
-      monto: factura.total || 0,
+      monto: saldoPendiente,
       observaciones: '',
     }
   });
@@ -78,7 +88,12 @@ export const RegistrarPagoModal = ({
   };
 
   const handleMontoCompleto = () => {
-    setValue('monto', factura.total || 0);
+    setValue('monto', saldoPendiente);
+  };
+
+  const handleMontoParcial = (porcentaje: number) => {
+    const montoParcial = saldoPendiente * (porcentaje / 100);
+    setValue('monto', Math.round(montoParcial * 100) / 100);
   };
 
   return (
@@ -88,88 +103,184 @@ export const RegistrarPagoModal = ({
           <DialogTitle>Registrar Pago</DialogTitle>
           <DialogDescription>
             Registra un pago para la factura N° {factura.numeroFactura}
+            {estaCompletamentePagada && (
+              <span className="block text-green-600 font-medium mt-1">
+                ✅ Esta factura ya está completamente pagada
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Información de la factura */}
-          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-            <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium">Cliente:</span>
-                <p>{factura.cliente?.nombre || 'N/A'}</p>
+                <span className="font-medium text-gray-600">Cliente:</span>
+                <p className="text-gray-900">{factura.cliente?.nombre || 'N/A'}</p>
               </div>
               <div>
-                <span className="font-medium">Total Factura:</span>
-                <p className="text-lg font-bold text-green-600">
-                  ${factura.total?.toLocaleString('es-AR', { minimumFractionDigits: 2 }) || '0.00'}
+                <span className="font-medium text-gray-600">Fecha Emisión:</span>
+                <p className="text-gray-900">
+                  {factura.fechaEmision 
+                    ? format(new Date(factura.fechaEmision), "dd/MM/yyyy", { locale: es })
+                    : 'N/A'
+                  }
                 </p>
               </div>
             </div>
-            <div>
-              <span className="font-medium text-sm">Fecha:</span>
-              <p className="text-sm">
-                {factura.fechaEmision 
-                  ? format(new Date(factura.fechaEmision), "dd 'de' MMMM 'de' yyyy", { locale: es })
-                  : 'N/A'
-                }
-              </p>
+            
+            {/* Información de montos */}
+            <div className="border-t pt-3 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-600">Total Factura:</span>
+                <span className="text-lg font-bold text-blue-600">
+                  ${totalFactura.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              
+              {totalPagado > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-600">Total Pagado:</span>
+                  <span className="text-lg font-bold text-gray-600">
+                    ${totalPagado.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+              
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-600">Saldo Pendiente:</span>
+                <span className={`text-lg font-bold ${saldoPendiente <= 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                  ${saldoPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
             </div>
+
+            {saldoPendiente !== totalFactura && (
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800">
+                  Esta factura ya tiene pagos registrados. El saldo pendiente es ${saldoPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })}.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {estaCompletamentePagada && (
+              <Alert className="border-green-200 bg-green-50">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  Esta factura está completamente pagada. No es necesario registrar más pagos.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
-          {/* Monto del pago */}
-          <div className="space-y-2">
-            <Label htmlFor="monto">Monto del Pago</Label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <input
-                  {...register('monto', { valueAsNumber: true })}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-                {errors.monto && (
-                  <p className="text-sm text-red-500 mt-1">{errors.monto.message}</p>
-                )}
+          {/* Historial de pagos previos */}
+          {movimientosPrevios.length > 0 && (
+            <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+              <h4 className="font-medium text-blue-900">Pagos Anteriores ({movimientosPrevios.length})</h4>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {movimientosPrevios.map((movimiento, index) => (
+                  <div key={movimiento.idMovimiento || index} className="flex justify-between items-center text-sm bg-white p-2 rounded">
+                    <div>
+                      <span className="font-medium">
+                        ${movimiento.monto?.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                      </span>
+                      {movimiento.fechaPago && (
+                        <span className="text-gray-500 ml-2">
+                          {format(new Date(movimiento.fechaPago), "dd/MM/yyyy", { locale: es })}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-gray-600 text-xs">
+                      Método: {movimiento.idMetodoPago || 'N/A'}
+                    </span>
+                  </div>
+                ))}
               </div>
+            </div>
+          )}
+
+          {/* Monto del pago */}
+          <div className="space-y-3">
+            <Label htmlFor="monto">Monto del Pago</Label>
+            
+            {/* Botones de ayuda para montos comunes */}
+            <div className="flex gap-2 text-xs">
               <Button 
                 type="button" 
                 variant="outline" 
+                size="sm"
                 onClick={handleMontoCompleto}
-                className="shrink-0"
+                className="text-xs"
               >
-                Total
+                Pago Total
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleMontoParcial(50)}
+                className="text-xs"
+              >
+                50%
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleMontoParcial(25)}
+                className="text-xs"
+              >
+                25%
               </Button>
             </div>
-            {montoActual !== factura.total && (
-              <p className="text-sm text-amber-600">
-                ⚠️ El monto difiere del total de la factura
-              </p>
-            )}
+            
+            <div className="space-y-2">
+              <input
+                {...register('monto', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                min="0"
+                max={saldoPendiente}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="0.00"
+              />
+              {errors.monto && (
+                <p className="text-sm text-red-500">{errors.monto.message}</p>
+              )}
+              
+              {/* Información del monto ingresado */}
+              {montoActual > 0 && (
+                <div className="text-sm space-y-1">
+                  {montoActual > saldoPendiente ? (
+                    <p className="text-amber-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      ⚠️ El monto supera el saldo pendiente (${saldoPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })})
+                    </p>
+                  ) : montoActual === saldoPendiente ? (
+                    <p className="text-green-600 flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" />
+                      ✅ Pago completo - La factura quedará totalmente pagada
+                    </p>
+                  ) : (
+                    <p className="text-blue-600">
+                      💰 Pago parcial - Quedará un saldo de ${(saldoPendiente - montoActual).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Método de pago */}
           <div className="space-y-2">
             <Label htmlFor="metodoPago">Método de Pago</Label>
-            <Select 
-              onValueChange={(value) => setValue('idMetodoPago', parseInt(value))}
-              disabled={loadingMetodos}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar método de pago" />
-              </SelectTrigger>
-              <SelectContent>
-                {metodosPago.map((metodo) => (
-                  <SelectItem key={metodo.id} value={metodo.id?.toString() || ''}>
-                    {metodo.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.idMetodoPago && (
-              <p className="text-sm text-red-500">{errors.idMetodoPago.message}</p>
-            )}
+            <MetodoPagoSelector
+              value={metodoPagoSeleccionado}
+              onValueChange={(value) => setValue('idMetodoPago', value, { shouldValidate: true })}
+              error={errors.idMetodoPago?.message}
+            />
           </div>
 
           {/* Observaciones */}
@@ -193,9 +304,9 @@ export const RegistrarPagoModal = ({
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || !metodoPagoSeleccionado}
+              disabled={isSubmitting || !metodoPagoSeleccionado || estaCompletamentePagada}
             >
-              {isSubmitting ? 'Registrando...' : 'Registrar Pago'}
+              {isSubmitting ? 'Registrando...' : estaCompletamentePagada ? 'Factura ya pagada' : 'Registrar Pago'}
             </Button>
           </DialogFooter>
         </form>
