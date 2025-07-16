@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FacturasTable } from '../components/FacturasTable';
 import { useFacturas, useDeleteFactura } from '../hooks/useFacturas';
@@ -11,8 +11,8 @@ import { FacturasStats } from '../components/FacturasStats';
 
 export const FacturasPage = () => {
   const navigate = useNavigate();
-  const { data: facturas, loading, error, refetch } = useFacturas();
-  const { deleteFactura, loading: deleting } = useDeleteFactura();
+  const { data: facturas = [], isLoading: loading, error } = useFacturas();
+  const deleteFacturaMutation = useDeleteFactura();
   const [selectedFactura, setSelectedFactura] = useState<FacturaDto | null>(null);
   const [showPagoModal, setShowPagoModal] = useState(false);
   const [facturaParaPago, setFacturaParaPago] = useState<FacturaDto | null>(null);
@@ -28,9 +28,10 @@ export const FacturasPage = () => {
 
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
-      const result = await deleteFactura(id);
-      if (result.success) {
-        refetch(); // Refrescar la lista
+      try {
+        await deleteFacturaMutation.mutateAsync(id);
+      } catch (error) {
+        console.error('Error al eliminar factura:', error);
       }
     }
   };
@@ -52,15 +53,8 @@ export const FacturasPage = () => {
   };
 
   const handlePagoExitoso = () => {
-    refetch(); // Refrescar facturas después del pago
+    // La refetch se hace automáticamente con React Query
   };
-
-  // Efecto para refrescar cuando se elimina una factura
-  useEffect(() => {
-    if (!deleting) {
-      // La página se actualizará automáticamente cuando deleting cambie
-    }
-  }, [deleting]);
 
   if (error) {
     return (
@@ -68,7 +62,7 @@ export const FacturasPage = () => {
         <Card className="p-8 text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Error al cargar facturas</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-4">{error?.message || 'Error desconocido'}</p>
         </Card>
       </div>
     );

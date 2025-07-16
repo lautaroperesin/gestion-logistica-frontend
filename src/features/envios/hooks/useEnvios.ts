@@ -1,186 +1,110 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { enviosService } from '../services/enviosService';
 import type { EnvioDto, CreateEnvioDto, UpdateEnvioDto } from '@/api';
 
+// Query keys para React Query
+export const enviosKeys = {
+  all: ['envios'] as const,
+  lists: () => [...enviosKeys.all, 'list'] as const,
+  list: (page: number, pageSize: number) => [...enviosKeys.lists(), { page, pageSize }] as const,
+  details: () => [...enviosKeys.all, 'detail'] as const,
+  detail: (id: number) => [...enviosKeys.details(), id] as const,
+};
+
 // Hook para obtener todos los envíos
-export const useEnvios = () => {
-  const [envios, setEnvios] = useState<EnvioDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchEnvios = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await enviosService.getAll();
-      setEnvios(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEnvios();
-  }, []);
-
-  return {
-    envios,
-    loading,
-    error,
-    refetch: fetchEnvios,
-  };
+export const useEnvios = (page: number = 1, pageSize: number = 10) => {
+  return useQuery({
+    queryKey: enviosKeys.list(page, pageSize),
+    queryFn: () => enviosService.getAll(),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    placeholderData: (previousData) => previousData,
+  });
 };
 
 // Hook para obtener un envío específico
-export const useEnvio = (id?: number) => {
-  const [envio, setEnvio] = useState<EnvioDto | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchEnvio = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await enviosService.getById(id);
-        setEnvio(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEnvio();
-  }, [id]);
-
-  return {
-    envio,
-    loading,
-    error,
-  };
+export const useEnvio = (id: number) => {
+  return useQuery({
+    queryKey: enviosKeys.detail(id),
+    queryFn: () => enviosService.getById(id),
+    enabled: id > 0,
+  });
 };
 
-// Hook para operaciones CRUD
-export const useEnviosCrud = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Hook para crear envío
+export const useCreateEnvio = () => {
+  const queryClient = useQueryClient();
 
-  const createEnvio = async (envio: CreateEnvioDto): Promise<boolean> => {
-    try {
-      setLoading(true);
-      setError(null);
-      await enviosService.create(envio);
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear envío');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  return useMutation({
+    mutationFn: (envioData: CreateEnvioDto) => enviosService.create(envioData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: enviosKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error creating envio:', error);
+    },
+  });
+};
 
-  const updateEnvio = async (id: number, envio: UpdateEnvioDto): Promise<boolean> => {
-    try {
-      setLoading(true);
-      setError(null);
-      await enviosService.update(id, envio);
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar envío');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+// Hook para actualizar envío
+export const useUpdateEnvio = () => {
+  const queryClient = useQueryClient();
 
-  const deleteEnvio = async (id: number): Promise<boolean> => {
-    try {
-      setLoading(true);
-      setError(null);
-      await enviosService.delete(id);
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar envío');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateEnvioDto }) => 
+      enviosService.update(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: enviosKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: enviosKeys.detail(id) });
+    },
+    onError: (error) => {
+      console.error('Error updating envio:', error);
+    },
+  });
+};
 
-  return {
-    createEnvio,
-    updateEnvio,
-    deleteEnvio,
-    loading,
-    error,
-  };
+// Hook para eliminar envío
+export const useDeleteEnvio = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => enviosService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: enviosKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error deleting envio:', error);
+    },
+  });
 };
 
 // Hook para obtener envíos por estado
-export const useEnviosByEstado = (estadoId?: number) => {
-  const [envios, setEnvios] = useState<EnvioDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!estadoId) return;
-
-    const fetchEnvios = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await enviosService.getByEstado(estadoId);
-        setEnvios(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEnvios();
-  }, [estadoId]);
-
-  return {
-    envios,
-    loading,
-    error,
-  };
+export const useEnviosByEstado = (estadoId: number) => {
+  return useQuery({
+    queryKey: [...enviosKeys.all, 'estado', estadoId],
+    queryFn: () => enviosService.getByEstado(estadoId),
+    enabled: estadoId > 0,
+    staleTime: 5 * 60 * 1000,
+  });
 };
 
 // Hook para obtener envíos por cliente
-export const useEnviosByCliente = (clienteId?: number) => {
-  const [envios, setEnvios] = useState<EnvioDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export const useEnviosByCliente = (clienteId: number) => {
+  return useQuery({
+    queryKey: [...enviosKeys.all, 'cliente', clienteId],
+    queryFn: () => enviosService.getByCliente(clienteId),
+    enabled: clienteId > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+};
 
-  useEffect(() => {
-    if (!clienteId) return;
-
-    const fetchEnvios = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await enviosService.getByCliente(clienteId);
-        setEnvios(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEnvios();
-  }, [clienteId]);
-
+// Hook para estadísticas de envíos
+export const useEnviosStats = () => {
+  const { data: envios = [] } = useEnvios(1, 1000);
+  
   return {
-    envios,
-    loading,
-    error,
+    totalEnvios: envios.length,
+    enviosPendientes: envios.filter((e: EnvioDto) => e.estado?.idEstado === 1).length,
+    enviosEntregados: envios.filter((e: EnvioDto) => e.estado?.idEstado === 2).length,
+    loading: !envios,
   };
 };

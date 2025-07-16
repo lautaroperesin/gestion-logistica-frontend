@@ -1,7 +1,7 @@
 import { Plus, Search, Package } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useTiposCarga } from "../hooks/useTiposCarga";
+import { useTiposCarga, useDeleteTipoCarga } from "../hooks/useTiposCarga";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,32 +12,26 @@ export const TiposCargaListPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   
-  const {
-    tiposCarga,
-    loading,
-    error,
-    refresh,
-    removeTipoCarga,
-    setError
-  } = useTiposCarga();
+  const { data: tiposCarga = [], isLoading: loading, error, refetch } = useTiposCarga();
+  const deleteTipoCargaMutation = useDeleteTipoCarga();
 
-  const filteredTiposCarga = tiposCarga.filter(tipoCarga => 
+  const filteredTiposCarga = tiposCarga.filter((tipoCarga: any) => 
     tipoCarga.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     tipoCarga.idTipoCarga?.toString().includes(searchTerm)
   );
 
   const handleDelete = async (id: number, nombre: string) => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar el tipo de carga "${nombre}"?`)) {
-      const success = await removeTipoCarga(id);
-      if (success) {
-        // El hook ya actualiza la lista automáticamente
+      try {
+        await deleteTipoCargaMutation.mutateAsync(id);
+      } catch (error) {
+        console.error('Error deleting tipo de carga:', error);
       }
     }
   };
 
   const handleRefresh = () => {
-    setError(null);
-    refresh();
+    refetch();
   };
 
   if (loading) {
@@ -61,7 +55,7 @@ export const TiposCargaListPage = () => {
       <div className="w-full space-y-4">
         <Alert variant="destructive">
           <AlertTitle>Error al cargar tipos de carga</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error?.message}</AlertDescription>
         </Alert>
         <Button onClick={handleRefresh} variant="outline">
           Reintentar

@@ -1,7 +1,91 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tiposCargaService } from '../services/tiposCargaService';
 import type { TipoCargaDto } from '@/api';
 
+// Query keys para React Query
+export const tiposCargaKeys = {
+  all: ['tiposCarga'] as const,
+  lists: () => [...tiposCargaKeys.all, 'list'] as const,
+  details: () => [...tiposCargaKeys.all, 'detail'] as const,
+  detail: (id: number) => [...tiposCargaKeys.details(), id] as const,
+};
+
+// Hook para obtener todos los tipos de carga
+export const useTiposCarga = () => {
+  return useQuery({
+    queryKey: tiposCargaKeys.lists(),
+    queryFn: () => tiposCargaService.getAll(),
+    staleTime: 10 * 60 * 1000, // 10 minutos (datos más estáticos)
+  });
+};
+
+// Hook para obtener un tipo de carga específico
+export const useTipoCarga = (id: number) => {
+  return useQuery({
+    queryKey: tiposCargaKeys.detail(id),
+    queryFn: () => tiposCargaService.getById(id),
+    enabled: id > 0,
+  });
+};
+
+// Hook para crear tipo de carga
+export const useCreateTipoCarga = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { nombre: string }) => tiposCargaService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: tiposCargaKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error creating tipo carga:', error);
+    },
+  });
+};
+
+// Hook para actualizar tipo de carga
+export const useUpdateTipoCarga = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { nombre: string } }) => 
+      tiposCargaService.update(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: tiposCargaKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: tiposCargaKeys.detail(id) });
+    },
+    onError: (error) => {
+      console.error('Error updating tipo carga:', error);
+    },
+  });
+};
+
+// Hook para eliminar tipo de carga
+export const useDeleteTipoCarga = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => tiposCargaService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: tiposCargaKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error deleting tipo carga:', error);
+    },
+  });
+};
+
+// Hook para estadísticas de tipos de carga
+export const useTiposCargaStats = () => {
+  const { data: tiposCarga = [] } = useTiposCarga();
+  
+  return {
+    totalTipos: tiposCarga.length,
+    loading: !tiposCarga,
+  };
+};
+
+// Tipos para compatibilidad hacia atrás
 export interface UseTiposCargaReturn {
   tiposCarga: TipoCargaDto[];
   loading: boolean;
@@ -12,82 +96,3 @@ export interface UseTiposCargaReturn {
   removeTipoCarga: (id: number) => Promise<boolean>;
   setError: (error: string | null) => void;
 }
-
-export const useTiposCarga = (): UseTiposCargaReturn => {
-  const [tiposCarga, setTiposCarga] = useState<TipoCargaDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchTiposCarga = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await tiposCargaService.getAll();
-      setTiposCarga(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar los tipos de carga');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refresh = async () => {
-    await fetchTiposCarga();
-  };
-
-  const createNewTipoCarga = async (tipoCarga: { nombre: string }): Promise<boolean> => {
-    try {
-      setError(null);
-      const newTipoCarga = await tiposCargaService.create(tipoCarga);
-      setTiposCarga(prev => [...prev, newTipoCarga]);
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear el tipo de carga');
-      return false;
-    }
-  };
-
-  const updateExistingTipoCarga = async (id: number, tipoCarga: { nombre: string }): Promise<boolean> => {
-    try {
-      setError(null);
-      await tiposCargaService.update(id, tipoCarga);
-      // Actualizar la lista local
-      setTiposCarga(prev => prev.map(tc => 
-        tc.idTipoCarga === id 
-          ? { ...tc, nombre: tipoCarga.nombre }
-          : tc
-      ));
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar el tipo de carga');
-      return false;
-    }
-  };
-
-  const removeTipoCarga = async (id: number): Promise<boolean> => {
-    try {
-      setError(null);
-      await tiposCargaService.delete(id);
-      setTiposCarga(prev => prev.filter(tc => tc.idTipoCarga !== id));
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar el tipo de carga');
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    fetchTiposCarga();
-  }, []);
-
-  return {
-    tiposCarga,
-    loading,
-    error,
-    refresh,
-    createNewTipoCarga,
-    updateExistingTipoCarga,
-    removeTipoCarga,
-    setError
-  };
-};

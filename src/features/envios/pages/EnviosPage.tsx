@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Plus, Package } from 'lucide-react';
-import { useEnvios, useEnviosCrud } from '../hooks/useEnvios';
+import { useEnvios, useDeleteEnvio } from '../hooks/useEnvios';
 import { EnviosTable } from '../components/EnviosTable';
 import { EnvioDetailsModal } from '../components/EnvioDetailsModal';
 import type { EnvioDto } from '@/api';
 
 export const EnviosPage = () => {
   const navigate = useNavigate();
-  const { envios, loading, error, refetch } = useEnvios();
-  const { deleteEnvio, loading: deleteLoading } = useEnviosCrud();
+  const { data: envios = [], isLoading: loading, error } = useEnvios();
+  const deleteEnvioMutation = useDeleteEnvio();
   
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
@@ -40,13 +40,9 @@ export const EnviosPage = () => {
 
     try {
       setDeleteError(null);
-      const success = await deleteEnvio(id);
-      
-      if (success) {
-        setDeleteSuccess(true);
-        refetch();
-        setTimeout(() => setDeleteSuccess(false), 3000);
-      }
+      await deleteEnvioMutation.mutateAsync(id);
+      setDeleteSuccess(true);
+      setTimeout(() => setDeleteSuccess(false), 3000);
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : 'Error al eliminar envío');
     }
@@ -82,7 +78,7 @@ export const EnviosPage = () => {
       {(error || deleteError) && (
         <Alert className="bg-red-500/20 border-red-500/30 text-red-100">
           <div className="font-medium">
-            {error || deleteError}
+            {error?.message || deleteError}
           </div>
         </Alert>
       )}
@@ -97,7 +93,7 @@ export const EnviosPage = () => {
       />
       
       {/* Loading overlay for delete */}
-      {deleteLoading && (
+      {deleteEnvioMutation.isPending && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
             <div className="flex items-center gap-3 text-black">

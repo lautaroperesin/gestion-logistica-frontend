@@ -7,8 +7,7 @@ import { ArrowLeft, Save, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useTiposCarga } from "../hooks/useTiposCarga";
-import { fetchTipoCargaById } from "../services/tiposCargaService";
+import { useTipoCarga, useCreateTipoCarga, useUpdateTipoCarga } from "../hooks/useTiposCarga";
 
 // Esquema de validación con Zod
 const tipoCargaSchema = z.object({
@@ -22,10 +21,10 @@ export const TipoCargaFormPage = () => {
   const { id } = useParams();
   const isEditing = !!id;
   
-  const { createNewTipoCarga, updateExistingTipoCarga } = useTiposCarga();
+  const { data: tipoCarga, isLoading: loadingData } = useTipoCarga(id ? parseInt(id) : 0);
+  const createTipoCargaMutation = useCreateTipoCarga();
+  const updateTipoCargaMutation = useUpdateTipoCarga();
   
-  const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<TipoCargaFormData>({
@@ -35,53 +34,34 @@ export const TipoCargaFormPage = () => {
     }
   });
 
-  const { register, handleSubmit, formState: { errors }, setValue } = form;
+  const { register, handleSubmit, formState: { errors }, reset } = form;
+  
+  const loading = createTipoCargaMutation.isPending || updateTipoCargaMutation.isPending;
 
-  // Cargar datos del tipo de carga si estamos editando
+  // Pre-llenar el formulario cuando se está editando
   useEffect(() => {
-    if (isEditing && id) {
-      loadTipoCargaData(parseInt(id));
+    if (isEditing && tipoCarga) {
+      reset({
+        nombre: tipoCarga.nombre || ''
+      });
     }
-  }, [id, isEditing]);
-
-  const loadTipoCargaData = async (tipoCargaId: number) => {
-    try {
-      setLoadingData(true);
-      const tipoCarga = await fetchTipoCargaById(tipoCargaId);
-      
-      // Cargar datos en el formulario usando setValue
-      setValue("nombre", tipoCarga.nombre || "");
-    } catch (err) {
-      setError("Error al cargar los datos del tipo de carga");
-    } finally {
-      setLoadingData(false);
-    }
-  };
+  }, [tipoCarga, isEditing, reset]);
 
   const onSubmit = async (data: TipoCargaFormData) => {
-    setLoading(true);
     setError(null);
 
     try {
       if (isEditing && id) {
-        const success = await updateExistingTipoCarga(parseInt(id), {
-          nombre: data.nombre
+        await updateTipoCargaMutation.mutateAsync({
+          id: parseInt(id),
+          data: { nombre: data.nombre }
         });
-        if (success) {
-          navigate("/tipos-carga");
-        }
       } else {
-        const success = await createNewTipoCarga({
-          nombre: data.nombre
-        });
-        if (success) {
-          navigate("/tipos-carga");
-        }
+        await createTipoCargaMutation.mutateAsync({ nombre: data.nombre });
       }
+      navigate("/tipos-carga");
     } catch (err) {
       setError(isEditing ? "Error al actualizar el tipo de carga" : "Error al crear el tipo de carga");
-    } finally {
-      setLoading(false);
     }
   };
 

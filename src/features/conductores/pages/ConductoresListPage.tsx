@@ -1,28 +1,25 @@
 import { Plus, Search, Users } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useConductores } from "../hooks/useConductores";
+import { useConductores, useDeleteConductor } from "../hooks/useConductores";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConductorCard } from "../components/ConductorCard";
+import type { ConductorDto } from "@/api";
 
 export const ConductoresPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   
-  const {
-    conductores,
-    loading,
-    error,
-    totalCount,
-    refresh,
-    removeConductor,
-    setError
-  } = useConductores(10);
+  const { data: result, isLoading: loading, error, refetch } = useConductores();
+  const deleteConductorMutation = useDeleteConductor();
 
-  const filteredConductores = conductores.filter(conductor => 
+  const conductores = result?.items || [];
+  const totalCount = result?.totalItems || 0;
+
+  const filteredConductores = conductores.filter((conductor: ConductorDto) => 
     conductor.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conductor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conductor.telefono?.includes(searchTerm)
@@ -30,16 +27,16 @@ export const ConductoresPage = () => {
 
   const handleDelete = async (id: number, nombre: string) => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar al conductor "${nombre}"?`)) {
-      const success = await removeConductor(id);
-      if (success) {
-        // El hook ya actualiza la lista automáticamente
+      try {
+        await deleteConductorMutation.mutateAsync(id);
+      } catch (error) {
+        console.error('Error deleting conductor:', error);
       }
     }
   };
 
   const handleRefresh = () => {
-    setError(null);
-    refresh();
+    refetch();
   };
 
   if (loading) {
@@ -63,7 +60,7 @@ export const ConductoresPage = () => {
       <div className="space-y-4">
         <Alert variant="destructive">
           <AlertTitle>Error al cargar conductores</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error?.message}</AlertDescription>
         </Alert>
         <Button onClick={handleRefresh} variant="outline">
           Reintentar
@@ -86,9 +83,6 @@ export const ConductoresPage = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button onClick={handleRefresh} variant="outline" size="sm">
-            Actualizar
-          </Button>
           <Button asChild>
             <Link to="/conductores/nuevo">
               <Plus className="h-4 w-4 mr-2" />
@@ -167,7 +161,7 @@ export const ConductoresPage = () => {
         </Card>
       ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredConductores.map((conductor) => (
+          {filteredConductores.map((conductor: ConductorDto) => (
             <ConductorCard 
               key={conductor.idConductor} 
               conductor={conductor} 

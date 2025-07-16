@@ -13,7 +13,7 @@ interface MovimientosCajaTableProps {
   onDelete: (id: number) => void;
 }
 
-type SortField = 'fechaPago' | 'monto' | 'factura';
+type SortField = 'fechaPago' | 'monto';
 type SortDirection = 'asc' | 'desc';
 
 export const MovimientosCajaTable = ({
@@ -45,11 +45,6 @@ export const MovimientosCajaTable = ({
       
       case 'monto':
         return ((a.monto || 0) - (b.monto || 0)) * direction;
-      
-      case 'factura':
-        const facturaA = a.factura?.numeroFactura || '';
-        const facturaB = b.factura?.numeroFactura || '';
-        return facturaA.localeCompare(facturaB) * direction;
       
       default:
         return 0;
@@ -101,12 +96,10 @@ export const MovimientosCajaTable = ({
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('factura')}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div className="flex items-center space-x-1">
                   <span>Factura</span>
-                  <SortIcon field="factura" />
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

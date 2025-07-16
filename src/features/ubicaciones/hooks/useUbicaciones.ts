@@ -1,183 +1,116 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ubicacionesService } from '../services/ubicacionesService';
-import type { UbicacionDto, CreateUbicacionDto, UpdateUbicacionDto, ProvinciaDto, LocalidadDto, PaisDto } from '@/api';
+import type { CreateUbicacionDto, UpdateUbicacionDto } from '@/api';
 
+// Query keys para React Query
+export const ubicacionesKeys = {
+  all: ['ubicaciones'] as const,
+  lists: () => [...ubicacionesKeys.all, 'list'] as const,
+  details: () => [...ubicacionesKeys.all, 'detail'] as const,
+  detail: (id: number) => [...ubicacionesKeys.details(), id] as const,
+  paises: () => [...ubicacionesKeys.all, 'paises'] as const,
+  provincias: (paisId: number) => [...ubicacionesKeys.all, 'provincias', paisId] as const,
+  localidades: (provinciaId: number) => [...ubicacionesKeys.all, 'localidades', provinciaId] as const,
+};
+
+// Hook para obtener todas las ubicaciones
 export function useUbicaciones() {
-  const [ubicaciones, setUbicaciones] = useState<UbicacionDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchUbicaciones = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await ubicacionesService.getAll();
-      setUbicaciones(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUbicaciones();
-  }, []);
-
-  const createUbicacion = async (ubicacion: CreateUbicacionDto) => {
-    try {
-      setError(null);
-      await ubicacionesService.create(ubicacion);
-      await fetchUbicaciones(); // Refrescar la lista
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear ubicación');
-      throw err;
-    }
-  };
-
-  const updateUbicacion = async (id: number, ubicacion: UpdateUbicacionDto) => {
-    try {
-      setError(null);
-      await ubicacionesService.update(id, ubicacion);
-      await fetchUbicaciones(); // Refrescar la lista
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al actualizar ubicación');
-      throw err;
-    }
-  };
-
-  const deleteUbicacion = async (id: number) => {
-    try {
-      setError(null);
-      await ubicacionesService.delete(id);
-      await fetchUbicaciones(); // Refrescar la lista
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar ubicación');
-      throw err;
-    }
-  };
-
-  return {
-    ubicaciones,
-    loading,
-    error,
-    createUbicacion,
-    updateUbicacion,
-    deleteUbicacion,
-    refetch: fetchUbicaciones,
-  };
+  return useQuery({
+    queryKey: ubicacionesKeys.lists(),
+    queryFn: () => ubicacionesService.getAll(),
+    staleTime: 10 * 60 * 1000, // 10 minutos (datos geográficos más estáticos)
+  });
 }
 
+// Hook para obtener una ubicación específica
 export function useUbicacion(id: number) {
-  const [ubicacion, setUbicacion] = useState<UbicacionDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUbicacion = async () => {
-      if (!id) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await ubicacionesService.getById(id);
-        setUbicacion(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUbicacion();
-  }, [id]);
-
-  return { ubicacion, loading, error };
+  return useQuery({
+    queryKey: ubicacionesKeys.detail(id),
+    queryFn: () => ubicacionesService.getById(id),
+    enabled: id > 0,
+  });
 }
+
+// Hook para crear ubicación
+export const useCreateUbicacion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateUbicacionDto) => ubicacionesService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ubicacionesKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error creating ubicacion:', error);
+    },
+  });
+};
+
+// Hook para actualizar ubicación
+export const useUpdateUbicacion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateUbicacionDto }) => 
+      ubicacionesService.update(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ubicacionesKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ubicacionesKeys.detail(id) });
+    },
+    onError: (error) => {
+      console.error('Error updating ubicacion:', error);
+    },
+  });
+};
+
+// Hook para eliminar ubicación
+export const useDeleteUbicacion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => ubicacionesService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ubicacionesKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error deleting ubicacion:', error);
+    },
+  });
+};
 
 // Hooks para datos jerárquicos
 export function usePaises() {
-  const [paises, setPaises] = useState<PaisDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPaises = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await ubicacionesService.getPaises();
-        setPaises(data);
-        console.log('Países obtenidos:', data); // Debug
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar países');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPaises();
-  }, []);
-
-  return { paises, loading, error };
+  return useQuery({
+    queryKey: ubicacionesKeys.paises(),
+    queryFn: () => ubicacionesService.getPaises(),
+    staleTime: 60 * 60 * 1000, // 1 hora (datos muy estáticos)
+  });
 }
 
 export function useProvinciasByPais(paisId: number | undefined) {
-  const [provincias, setProvincias] = useState<ProvinciaDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProvincias = async () => {
-      if (!paisId) {
-        setProvincias([]);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await ubicacionesService.getProvinciasByPais(paisId);
-        setProvincias(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar provincias');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProvincias();
-  }, [paisId]);
-
-  return { provincias, loading, error };
+  return useQuery({
+    queryKey: ubicacionesKeys.provincias(paisId || 0),
+    queryFn: () => ubicacionesService.getProvinciasByPais(paisId!),
+    enabled: !!paisId && paisId > 0,
+    staleTime: 30 * 60 * 1000, // 30 minutos
+  });
 }
 
 export function useLocalidadesByProvincia(provinciaId: number | undefined) {
-  const [localidades, setLocalidades] = useState<LocalidadDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchLocalidades = async () => {
-      if (!provinciaId) {
-        setLocalidades([]);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await ubicacionesService.getLocalidadesByProvincia(provinciaId);
-        setLocalidades(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar localidades');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLocalidades();
-  }, [provinciaId]);
-
-  return { localidades, loading, error };
+  return useQuery({
+    queryKey: ubicacionesKeys.localidades(provinciaId || 0),
+    queryFn: () => ubicacionesService.getLocalidadesByProvincia(provinciaId!),
+    enabled: !!provinciaId && provinciaId > 0,
+    staleTime: 30 * 60 * 1000, // 30 minutos
+  });
 }
+
+// Hook para estadísticas de ubicaciones
+export const useUbicacionesStats = () => {
+  const { data: ubicaciones = [] } = useUbicaciones();
+  
+  return {
+    totalUbicaciones: ubicaciones.length,
+    loading: !ubicaciones,
+  };
+};

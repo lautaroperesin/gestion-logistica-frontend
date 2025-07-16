@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
+import { Settings } from 'lucide-react';
 import { useMovimientos, useDeleteMovimiento, useMovimientosStats } from '../hooks/useMovimientosCaja';
 import { MovimientosCajaTable } from '../components/MovimientosCajaTable';
 import { MovimientosCajaStats } from '../components/MovimientosCajaStats';
@@ -8,6 +10,7 @@ import { MovimientoDetailsModal } from '../components/MovimientoDetailsModal';
 import type { MovimientoCajaDto } from '../../../api';
 
 export const MovimientosCajaPage = () => {
+  const navigate = useNavigate();
   const [selectedMovimiento, setSelectedMovimiento] = useState<MovimientoCajaDto | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
@@ -19,7 +22,7 @@ export const MovimientosCajaPage = () => {
   } = useMovimientos();
 
   const deleteMovimiento = useDeleteMovimiento();
-  const movimientos = movimientosResult?.items || [];
+  const movimientos = movimientosResult || [];
   const stats = useMovimientosStats(movimientos);
 
   const handleView = (movimiento: MovimientoCajaDto) => {
@@ -61,8 +64,16 @@ export const MovimientosCajaPage = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Movimientos de Caja</h1>
-          <p className="text-gray-600">Historial de pagos y movimientos de efectivo</p>
+          <p className="text-gray-600">Historial de pagos y movimientos</p>
         </div>
+        <Button 
+          onClick={() => navigate('/metodos-pago')}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          Gestionar Métodos de Pago
+        </Button>
       </div>
 
       {/* Estadísticas */}

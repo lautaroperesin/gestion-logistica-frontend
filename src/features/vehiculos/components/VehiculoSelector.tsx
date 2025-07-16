@@ -16,7 +16,7 @@ export const VehiculoSelector: React.FC<VehiculoSelectorProps> = ({
   error,
   disabled
 }) => {
-  const { vehiculos, loading } = useVehiculos();
+  const { data: vehiculos = [], isLoading: loading } = useVehiculos();
 
   const options = vehiculos.map((vehiculo: VehiculoDto) => ({
     value: vehiculo.idVehiculo?.toString() || '',
@@ -42,7 +42,7 @@ export const VehiculoSelector: React.FC<VehiculoSelectorProps> = ({
     <div className="space-y-1">
       <Combobox
         options={options}
-        value={value?.toString() || ''}
+        value={value && value > 0 ? value.toString() : ''}
         onValueChange={handleValueChange}
         placeholder="Seleccionar vehículo..."
         searchPlaceholder="Buscar vehículo..."

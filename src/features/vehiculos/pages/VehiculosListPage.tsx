@@ -1,27 +1,22 @@
 import { Plus, Search, Truck } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useVehiculos } from "../hooks/useVehiculos";
+import { useVehiculos, useDeleteVehiculo } from "../hooks/useVehiculos";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import VehiculosTable from "../components/VehiculosTable";
+import type { VehiculoDto } from "@/api";
 
 export const VehiculosPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   
-  const {
-    vehiculos,
-    loading,
-    error,
-    refresh,
-    removeVehiculo,
-    setError
-  } = useVehiculos();
+  const { data: vehiculos = [], isLoading: loading, error, refetch } = useVehiculos();
+  const deleteVehiculoMutation = useDeleteVehiculo();
 
-  const filteredVehiculos = vehiculos.filter(vehiculo => 
+  const filteredVehiculos = vehiculos.filter((vehiculo: VehiculoDto) => 
     vehiculo.marca?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vehiculo.modelo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vehiculo.patente?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -29,16 +24,16 @@ export const VehiculosPage = () => {
 
   const handleDelete = async (id: number, descripcion: string) => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar el vehículo "${descripcion}"?`)) {
-      const success = await removeVehiculo(id);
-      if (success) {
-        // El hook ya actualiza la lista automáticamente
+      try {
+        await deleteVehiculoMutation.mutateAsync(id);
+      } catch (error) {
+        console.error('Error deleting vehiculo:', error);
       }
     }
   };
 
   const handleRefresh = () => {
-    setError(null);
-    refresh();
+    refetch();
   };
 
   if (loading) {
@@ -62,7 +57,7 @@ export const VehiculosPage = () => {
       <div className="space-y-4">
         <Alert variant="destructive">
           <AlertTitle>Error al cargar vehiculos</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error?.message}</AlertDescription>
         </Alert>
         <Button onClick={handleRefresh} variant="outline">
           Reintentar
@@ -127,7 +122,7 @@ export const VehiculosPage = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-emerald-700">Disponibles</p>
                 <p className="text-2xl font-bold text-emerald-900">
-                  {vehiculos.filter(v => v.estado === 1).length}
+                  {vehiculos.filter((v: VehiculoDto) => v.estado === 1).length}
                 </p>
               </div>
             </div>
@@ -145,7 +140,7 @@ export const VehiculosPage = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-amber-700">En Servicio</p>
                 <p className="text-2xl font-bold text-amber-900">
-                  {vehiculos.filter(v => v.estado === 2).length}
+                  {vehiculos.filter((v: VehiculoDto) => v.estado === 2).length}
                 </p>
               </div>
             </div>
@@ -163,7 +158,7 @@ export const VehiculosPage = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-red-700">Mantenimiento</p>
                 <p className="text-2xl font-bold text-red-900">
-                  {vehiculos.filter(v => v.estado === 3 || v.estado === 4).length}
+                  {vehiculos.filter((v: VehiculoDto) => v.estado === 3 || v.estado === 4).length}
                 </p>
               </div>
             </div>

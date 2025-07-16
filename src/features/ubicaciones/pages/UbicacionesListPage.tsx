@@ -2,12 +2,13 @@ import { Plus, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import UbicacionesTable from '../components/UbicacionesTable';
-import { useUbicaciones } from '../hooks/useUbicaciones';
+import { useUbicaciones, useDeleteUbicacion } from '../hooks/useUbicaciones';
 import type { UbicacionDto } from '@/api';
 
 export default function UbicacionesPage() {
   const navigate = useNavigate();
-  const { ubicaciones, loading, error, deleteUbicacion } = useUbicaciones();
+  const { data: ubicaciones = [], isLoading: loading, error } = useUbicaciones();
+  const deleteUbicacionMutation = useDeleteUbicacion();
 
   const handleEdit = (ubicacion: UbicacionDto) => {
     navigate(`/ubicaciones/editar/${ubicacion.idUbicacion}`);
@@ -19,7 +20,7 @@ export default function UbicacionesPage() {
     }
 
     try {
-      await deleteUbicacion(id);
+      await deleteUbicacionMutation.mutateAsync(id);
     } catch (error) {
       console.error('Error al eliminar ubicación:', error);
     }
@@ -40,7 +41,7 @@ export default function UbicacionesPage() {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Error al cargar ubicaciones</h3>
               <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
+                <p>{error?.message}</p>
               </div>
             </div>
           </div>

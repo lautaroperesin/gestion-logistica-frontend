@@ -1,96 +1,95 @@
-import { useState, useEffect } from 'react';
-import { fetchClientes, createCliente, updateCliente, deleteCliente } from '../services/clientesService';
-import type { ClienteDto, CreateClienteDto, UpdateClienteDto, ClienteDtoPagedResult } from '@/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchClientes, createCliente, updateCliente, deleteCliente, fetchClienteById } from '../services/clientesService';
+import type { CreateClienteDto, UpdateClienteDto } from '@/api';
 
-export const useClientes = (initialPageSize: number = 10) => {
-  const [clientes, setClientes] = useState<ClienteDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(initialPageSize);
+// Query keys para React Query
+export const clientesKeys = {
+  all: ['clientes'] as const,
+  lists: () => [...clientesKeys.all, 'list'] as const,
+  list: (page: number, pageSize: number) => [...clientesKeys.lists(), { page, pageSize }] as const,
+  details: () => [...clientesKeys.all, 'detail'] as const,
+  detail: (id: number) => [...clientesKeys.details(), id] as const,
+};
 
-  const loadClientes = async (page: number = currentPage, size: number = pageSize) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('Fetching clientes...', { page, size });
-      const result: ClienteDtoPagedResult = await fetchClientes(page, size);
-      console.log('Clientes response:', result);
-      
-      setClientes(result.items || []);
-      setTotalCount(result.totalItems || 0);
-      setCurrentPage(page);
-      setPageSize(size);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      console.error('Error loading clientes:', err);
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+// Hook para obtener clientes con paginación
+export const useClientes = (page: number = 1, pageSize: number = 10) => {
+  return useQuery({
+    queryKey: clientesKeys.list(page, pageSize),
+    queryFn: () => fetchClientes(page, pageSize),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    placeholderData: (previousData) => previousData, // Mantener datos anteriores mientras carga
+  });
+};
 
-  const createNewCliente = async (clienteData: CreateClienteDto) => {
-    try {
-      await createCliente(clienteData);
-      // Recargar la lista después de crear
-      await loadClientes();
-      return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al crear cliente';
-      setError(errorMessage);
-      return false;
-    }
-  };
+// Hook para obtener un cliente específico
+export const useCliente = (id: number) => {
+  return useQuery({
+    queryKey: clientesKeys.detail(id),
+    queryFn: () => fetchClienteById(id),
+    enabled: id > 0, // Solo ejecutar si el ID es válido
+  });
+};
 
-  const updateExistingCliente = async (id: number, clienteData: UpdateClienteDto) => {
-    try {
-      await updateCliente(id, clienteData);
-      // Recargar la lista después de actualizar
-      await loadClientes();
-      return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al actualizar cliente';
-      setError(errorMessage);
-      return false;
-    }
-  };
+// Hook para crear cliente
+export const useCreateCliente = () => {
+  const queryClient = useQueryClient();
 
-  const removeCliente = async (id: number) => {
-    try {
-      await deleteCliente(id);
-      // Recargar la lista después de eliminar
-      await loadClientes();
-      return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar cliente';
-      setError(errorMessage);
-      return false;
-    }
-  };
+  return useMutation({
+    mutationFn: (clienteData: CreateClienteDto) => createCliente(clienteData),
+    onSuccess: () => {
+      // Invalidar todas las listas de clientes para refrescar los datos
+      queryClient.invalidateQueries({ queryKey: clientesKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error creating cliente:', error);
+    },
+  });
+};
 
-  const refresh = () => {
-    loadClientes();
-  };
+// Hook para actualizar cliente
+export const useUpdateCliente = () => {
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadClientes();
-  }, []);
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateClienteDto }) => 
+      updateCliente(id, data),
+    onSuccess: (_, { id }) => {
+      // Invalidar las listas y el detalle específico
+      queryClient.invalidateQueries({ queryKey: clientesKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: clientesKeys.detail(id) });
+    },
+    onError: (error) => {
+      console.error('Error updating cliente:', error);
+    },
+  });
+};
 
+// Hook para eliminar cliente
+export const useDeleteCliente = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteCliente(id),
+    onSuccess: () => {
+      // Invalidar todas las listas de clientes
+      queryClient.invalidateQueries({ queryKey: clientesKeys.lists() });
+    },
+    onError: (error) => {
+      console.error('Error deleting cliente:', error);
+    },
+  });
+};
+
+// Hook para estadísticas de clientes (útil para dashboard)
+export const useClientesStats = () => {
+  const { data: clientesResult } = useClientes(1, 1000); // Obtener todos para estadísticas
+  
+  const clientes = clientesResult?.items || [];
+  
   return {
-    clientes,
-    loading,
-    error,
-    totalCount,
-    currentPage,
-    pageSize,
-    loadClientes,
-    createNewCliente,
-    updateExistingCliente,
-    removeCliente,
-    refresh,
-    setError, // Para limpiar errores manualmente
+    totalClientes: clientesResult?.totalItems || 0,
+    clientesConEmail: clientes.filter(c => c.email).length,
+    clientesConTelefono: clientes.filter(c => c.telefono).length,
+    loading: !clientesResult,
   };
 };

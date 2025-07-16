@@ -16,7 +16,11 @@ export const ClienteSelector: React.FC<ClienteSelectorProps> = ({
   error,
   disabled
 }) => {
-  const { clientes, loading } = useClientes(1000);
+  // Corregir destructuring para React Query
+  const { data: result, isLoading: loading } = useClientes();
+  
+  // Extraer clientes del resultado paginado
+  const clientes = result?.items || [];
 
   const options = clientes.map((cliente: ClienteDto) => ({
     value: cliente.idCliente?.toString() || '',
@@ -42,7 +46,7 @@ export const ClienteSelector: React.FC<ClienteSelectorProps> = ({
     <div className="space-y-1">
       <Combobox
         options={options}
-        value={value?.toString() || ''}
+        value={value && value > 0 ? value.toString() : ''}
         onValueChange={handleValueChange}
         placeholder="Seleccionar cliente..."
         searchPlaceholder="Buscar cliente..."

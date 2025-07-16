@@ -9,7 +9,7 @@ export const movimientosCajaService = {
   // Obtener todos los movimientos
   getAll: async (): Promise<MovimientoCajaDto[]> => {
     try {
-      const response = await movimientosApi.apiMovimientosCajaGet({ pageNumber: 1, pageSize: 1000 });
+      const response = await movimientosApi.apiMovimientosCajaGet({ pageNumber: 1, pageSize: 10 });
       return response.items || [];
     } catch (error) {
       console.error('Error al obtener movimientos de caja:', error);

@@ -46,9 +46,16 @@ export const facturasService = {
         id,
         updateFacturaDto: factura
       });
-    } catch (error) {
-      console.error('Error al actualizar factura:', error);
-      throw new Error('Error al actualizar la factura');
+    } catch (error: any) {
+        let errorMessage = "Error al actualizar la factura";
+
+      if (error.response && error.response.json) {
+        const errorBody = await error.response.json();
+        errorMessage = errorBody?.message || JSON.stringify(errorBody);
+      }
+
+      console.error("Error al actualizar factura:", error);
+      throw new Error(errorMessage);
     }
   },
 

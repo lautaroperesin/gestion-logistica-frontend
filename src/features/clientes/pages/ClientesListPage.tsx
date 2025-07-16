@@ -1,7 +1,7 @@
-import { Plus, Search, Users } from "lucide-react";
+import { Plus, Search, Users, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useClientes } from "../hooks/useClientes";
+import { useClientes, useDeleteCliente } from "../hooks/useClientes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,16 +11,21 @@ import { ClienteCard } from "../components/ClienteCard";
 export const ClientesPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   
-  const {
-    clientes,
-    loading,
-    error,
-    totalCount,
-    refresh,
-    removeCliente,
-    setError
-  } = useClientes(10);
+  // Usar React Query hooks
+  const { 
+    data: clientesResult, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useClientes(currentPage, pageSize);
+  
+  const deleteClienteMutation = useDeleteCliente();
+
+  const clientes = clientesResult?.items || [];
+  const totalCount = clientesResult?.totalItems || 0;
 
   const filteredClientes = clientes.filter(cliente => 
     cliente.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -30,19 +35,20 @@ export const ClientesPage = () => {
 
   const handleDelete = async (id: number, nombre: string) => {
     if (window.confirm(`¿Estás seguro de que quieres eliminar al cliente "${nombre}"?`)) {
-      const success = await removeCliente(id);
-      if (success) {
-        // El hook ya actualiza la lista automáticamente
+      try {
+        await deleteClienteMutation.mutateAsync(id);
+        // React Query actualizará automáticamente la lista
+      } catch (error) {
+        console.error('Error al eliminar cliente:', error);
       }
     }
   };
 
   const handleRefresh = () => {
-    setError(null);
-    refresh();
+    refetch();
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -63,7 +69,9 @@ export const ClientesPage = () => {
       <div className="space-y-4">
         <Alert variant="destructive">
           <AlertTitle>Error al cargar clientes</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error instanceof Error ? error.message : 'Error desconocido'}
+          </AlertDescription>
         </Alert>
         <Button onClick={handleRefresh} variant="outline">
           Reintentar

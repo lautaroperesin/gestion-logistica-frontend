@@ -42,7 +42,7 @@ export const EstadoEnvioSelector: React.FC<EstadoEnvioSelectorProps> = ({
     <div className="space-y-1">
       <Combobox
         options={options}
-        value={value?.toString() || ''}
+        value={value && value > 0 ? value.toString() : ''}
         onValueChange={handleValueChange}
         placeholder="Seleccionar estado..."
         searchPlaceholder="Buscar estado..."

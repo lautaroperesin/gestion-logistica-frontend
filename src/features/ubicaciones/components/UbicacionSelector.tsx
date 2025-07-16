@@ -27,9 +27,10 @@ export default function UbicacionSelector({
   const [provinciaValue, setProvinciaValue] = useState<string>('');
   const [localidadValue, setLocalidadValue] = useState<string>('');
 
-  const { paises, loading: paisesLoading } = usePaises();
-  const { provincias, loading: provinciasLoading } = useProvinciasByPais(selectedPaisId);
-  const { localidades, loading: localidadesLoading } = useLocalidadesByProvincia(selectedProvinciaId);
+  // Destructuring para React Query
+  const { data: paises = [], isLoading: paisesLoading } = usePaises();
+  const { data: provincias = [], isLoading: provinciasLoading } = useProvinciasByPais(selectedPaisId);
+  const { data: localidades = [], isLoading: localidadesLoading } = useLocalidadesByProvincia(selectedProvinciaId);
 
   // Actualizar valores cuando cambien las props
   useEffect(() => {

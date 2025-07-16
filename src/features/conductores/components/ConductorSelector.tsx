@@ -16,8 +16,12 @@ export const ConductorSelector: React.FC<ConductorSelectorProps> = ({
   error,
   disabled
 }) => {
-  const { conductores, loading } = useConductores(1000);
+  // Corregir destructuring para React Query
+  const { data: result, isLoading: loading } = useConductores();
 
+  // Extraer conductores del resultado paginado
+  const conductores = result?.items || [];
+  
   const options = conductores.map((conductor: ConductorDto) => ({
     value: conductor.idConductor?.toString() || '',
     label: conductor.nombre || 'Sin nombre',
@@ -42,7 +46,7 @@ export const ConductorSelector: React.FC<ConductorSelectorProps> = ({
     <div className="space-y-1">
       <Combobox
         options={options}
-        value={value?.toString() || ''}
+        value={value && value > 0 ? value.toString() : ''}
         onValueChange={handleValueChange}
         placeholder="Seleccionar conductor..."
         searchPlaceholder="Buscar conductor..."

@@ -7,8 +7,7 @@ import { ArrowLeft, Save, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useVehiculos } from "../hooks/useVehiculos";
-import { fetchVehiculoById } from "../services/vehiculosService";
+import { useVehiculo, useCreateVehiculo, useUpdateVehiculo } from "../hooks/useVehiculos";
 import type { CreateVehiculoDto, UpdateVehiculoDto, EstadoVehiculo } from "@/api";
 
 // Esquema de validación con Zod
@@ -37,10 +36,10 @@ export const VehiculoFormPage = () => {
   const { id } = useParams();
   const isEditing = !!id;
   
-  const { createNewVehiculo, updateExistingVehiculo } = useVehiculos();
+  const { data: vehiculo, isLoading: loadingData } = useVehiculo(id ? parseInt(id) : 0);
+  const createVehiculoMutation = useCreateVehiculo();
+  const updateVehiculoMutation = useUpdateVehiculo();
   
-  const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<VehiculoFormData>({
@@ -56,41 +55,30 @@ export const VehiculoFormPage = () => {
     }
   });
 
-  const { register, handleSubmit, formState: { errors }, setValue } = form;
+  const { register, handleSubmit, formState: { errors }, reset } = form;
+  
+  const loading = createVehiculoMutation.isPending || updateVehiculoMutation.isPending;
 
-  // Cargar datos del vehiculo si estamos editando
+  // Pre-llenar el formulario cuando se está editando
   useEffect(() => {
-    if (isEditing && id) {
-      loadVehiculoData(parseInt(id));
+    if (isEditing && vehiculo) {
+      reset({
+        marca: vehiculo.marca || '',
+        modelo: vehiculo.modelo || '',
+        patente: vehiculo.patente || '',
+        capacidadCarga: vehiculo.capacidadCarga || 0,
+        estado: vehiculo.estado || 1,
+        ultimaInspeccion: vehiculo.ultimaInspeccion 
+          ? new Date(vehiculo.ultimaInspeccion).toISOString().split('T')[0] 
+          : '',
+        rtoVencimiento: vehiculo.rtoVencimiento 
+          ? new Date(vehiculo.rtoVencimiento).toISOString().split('T')[0] 
+          : ''
+      });
     }
-  }, [id, isEditing]);
-
-  const loadVehiculoData = async (vehiculoId: number) => {
-    try {
-      setLoadingData(true);
-      const vehiculo = await fetchVehiculoById(vehiculoId);
-      
-      // Cargar datos en el formulario usando setValue
-      setValue('marca', vehiculo.marca || '');
-      setValue('modelo', vehiculo.modelo || '');
-      setValue('patente', vehiculo.patente || '');
-      setValue('capacidadCarga', vehiculo.capacidadCarga || 0);
-      setValue('estado', vehiculo.estado || 1);
-      setValue('ultimaInspeccion', vehiculo.ultimaInspeccion 
-        ? new Date(vehiculo.ultimaInspeccion).toISOString().split('T')[0] 
-        : '');
-      setValue('rtoVencimiento', vehiculo.rtoVencimiento 
-        ? new Date(vehiculo.rtoVencimiento).toISOString().split('T')[0] 
-        : '');
-    } catch (err) {
-      setError("Error al cargar los datos del vehículo");
-    } finally {
-      setLoadingData(false);
-    }
-  };
+  }, [vehiculo, isEditing, reset]);
 
   const onSubmit = async (data: VehiculoFormData) => {
-    setLoading(true);
     setError(null);
 
     try {
@@ -106,10 +94,11 @@ export const VehiculoFormPage = () => {
           rtoVencimiento: new Date(data.rtoVencimiento)
         };
         
-        const success = await updateExistingVehiculo(parseInt(id), updateData);
-        if (success) {
-          navigate("/vehiculos");
-        }
+        await updateVehiculoMutation.mutateAsync({
+          id: parseInt(id),
+          data: updateData
+        });
+        navigate("/vehiculos");
       } else {
         const createData: CreateVehiculoDto = {
           marca: data.marca,
@@ -121,15 +110,11 @@ export const VehiculoFormPage = () => {
           rtoVencimiento: new Date(data.rtoVencimiento)
         };
         
-        const success = await createNewVehiculo(createData);
-        if (success) {
-          navigate("/vehiculos");
-        }
+        await createVehiculoMutation.mutateAsync(createData);
+        navigate("/vehiculos");
       }
     } catch (err) {
       setError(isEditing ? "Error al actualizar el vehículo" : "Error al crear el vehículo");
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -34,11 +34,13 @@ export const FacturaFormPage = () => {
   const facturaId = id ? parseInt(id) : undefined;
 
   // Hooks para datos
-  const { data: factura, loading: facturaLoading } = useFactura(facturaId || 0);
-  const { createFactura, loading: creating } = useCreateFactura();
-  const { updateFactura, loading: updating } = useUpdateFactura();
-  const { clientes, loading: clientesLoading } = useClientes();
-  const { envios, loading: enviosLoading } = useEnvios();
+  const { data: factura, isLoading: facturaLoading } = useFactura(facturaId || 0);
+  const createFacturaMutation = useCreateFactura();
+  const updateFacturaMutation = useUpdateFactura();
+  const { data: clientesResult, isLoading: clientesLoading } = useClientes(1, 1000);
+  const { data: envios = [], isLoading: enviosLoading } = useEnvios();
+  
+  const clientes = clientesResult?.items || [];
 
   // Configuración del formulario
   const form = useForm<FacturaFormData>({
@@ -94,25 +96,26 @@ export const FacturaFormPage = () => {
 
   const onSubmit = async (data: FacturaFormData) => {
     try {
-      const facturaData = {
-        ...data,
-        fechaEmision: new Date(data.fechaEmision),
-        fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento) : undefined,
-        estado: data.estado as any, // Convertir a EstadoFactura
-      };
 
       if (isEdit && facturaId) {
-        const updateData: UpdateFacturaDto = facturaData;
-        const result = await updateFactura(facturaId, updateData);
-        if (result.success) {
-          navigate('/facturas');
-        }
+        const updateData: UpdateFacturaDto = {
+          idFactura: facturaId,
+          ...data,
+          fechaEmision: new Date(data.fechaEmision),
+          fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento) : undefined,
+          estado: data.estado as any,
+        };
+        await updateFacturaMutation.mutateAsync({ id: facturaId, data: updateData });
+        navigate('/facturas');
       } else {
-        const createData: CreateFacturaDto = facturaData as CreateFacturaDto;
-        const result = await createFactura(createData);
-        if (result.success) {
-          navigate('/facturas');
-        }
+        const createData: CreateFacturaDto = {
+          ...data,
+          fechaEmision: new Date(data.fechaEmision),
+          fechaVencimiento: data.fechaVencimiento ? new Date(data.fechaVencimiento) : undefined,
+          estado: data.estado as any,
+        };
+        await createFacturaMutation.mutateAsync(createData);
+        navigate('/facturas');
       }
     } catch (error) {
       console.error('Error al procesar factura:', error);
@@ -123,7 +126,7 @@ export const FacturaFormPage = () => {
     navigate('/facturas');
   };
 
-  const isLoading = creating || updating;
+  const isLoading = createFacturaMutation.isPending || updateFacturaMutation.isPending;
   const dataLoading = clientesLoading || enviosLoading;
 
   return (

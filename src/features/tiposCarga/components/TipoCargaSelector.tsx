@@ -16,7 +16,7 @@ export const TipoCargaSelector: React.FC<TipoCargaSelectorProps> = ({
   error,
   disabled
 }) => {
-  const { tiposCarga, loading } = useTiposCarga();
+  const { data: tiposCarga = [], isLoading: loading } = useTiposCarga();
 
   const options = tiposCarga.map((tipoCarga: TipoCargaDto) => ({
     value: tipoCarga.idTipoCarga?.toString() || '',
@@ -42,7 +42,7 @@ export const TipoCargaSelector: React.FC<TipoCargaSelectorProps> = ({
     <div className="space-y-1">
       <Combobox
         options={options}
-        value={value?.toString() || ''}
+        value={value && value > 0 ? value.toString() : ''}
         onValueChange={handleValueChange}
         placeholder="Seleccionar tipo de carga..."
         searchPlaceholder="Buscar tipo de carga..."

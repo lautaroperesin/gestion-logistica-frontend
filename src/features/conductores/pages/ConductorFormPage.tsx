@@ -1,153 +1,126 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useConductores } from "../hooks/useConductores";
-import { fetchConductorById } from "../services/conductoresService";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCreateConductor, useUpdateConductor, useConductor } from "../hooks/useConductores";
 import type { CreateConductorDto, UpdateConductorDto } from "@/api";
+
+// Esquema de validación con Zod
+const conductorSchema = z.object({
+  nombre: z.string()
+    .min(1, "El nombre es requerido")
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(100, "El nombre no puede tener más de 100 caracteres")
+    .trim(),
+  dni: z.string()
+    .min(1, "El DNI es requerido")
+    .regex(/^\d{7,8}$/, "El DNI debe tener entre 7 y 8 dígitos")
+    .trim(),
+  email: z.string()
+    .optional()
+    .refine((email) => !email || z.string().email().safeParse(email).success, {
+      message: "El email no es válido"
+    }),
+  telefono: z.string().optional(),
+  claseLicencia: z.string()
+    .min(1, "La clase de licencia es requerida"),
+  vencimientoLicencia: z.string()
+    .min(1, "La fecha de vencimiento es requerida")
+    .refine((date) => new Date(date) > new Date(), {
+      message: "La fecha de vencimiento debe ser futura"
+    })
+});
+
+type ConductorFormData = z.infer<typeof conductorSchema>;
 
 export const ConductorFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
   
-  const { createNewConductor, updateExistingConductor } = useConductores();
-  
-  const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(isEditing);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    dni: '',
-    nombre: '',
-    claseLicencia: 'B',
-    vencimientoLicencia: '',
-    telefono: '',
-    email: ''
+  const { data: conductor, isLoading: loadingData } = useConductor(id ? parseInt(id) : 0);
+  const createConductorMutation = useCreateConductor();
+  const updateConductorMutation = useUpdateConductor();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid, isSubmitting },
+    reset,
+    setValue,
+    watch
+  } = useForm<ConductorFormData>({
+    resolver: zodResolver(conductorSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      nombre: '',
+      dni: '',
+      email: undefined,
+      telefono: undefined,
+      claseLicencia: '',
+      vencimientoLicencia: ''
+    }
   });
+
+  const watchedVencimiento = watch('vencimientoLicencia');
+  const watchedClaseLicencia = watch('claseLicencia');
 
   // Cargar datos del conductor si estamos editando
   useEffect(() => {
-    if (isEditing && id) {
-      loadConductorData(parseInt(id));
-    }
-  }, [id, isEditing]);
-
-  const loadConductorData = async (conductorId: number) => {
-    try {
-      setLoadingData(true);
-      const conductor = await fetchConductorById(conductorId);
-      setFormData({
-        dni: conductor.dni || '',
+    if (isEditing && conductor) {
+      reset({
         nombre: conductor.nombre || '',
-        claseLicencia: conductor.claseLicencia || 'B',
+        dni: conductor.dni || '',
+        email: conductor.email || undefined,
+        telefono: conductor.telefono || undefined,
+        claseLicencia: conductor.claseLicencia || '',
         vencimientoLicencia: conductor.vencimientoLicencia 
           ? new Date(conductor.vencimientoLicencia).toISOString().split('T')[0] 
-          : '',
-        telefono: conductor.telefono || '',
-        email: conductor.email || ''
+          : ''
       });
-    } catch (err) {
-      setError("Error al cargar los datos del conductor");
-    } finally {
-      setLoadingData(false);
     }
-  };
+  }, [conductor, isEditing, reset]);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    // Limpiar error al empezar a escribir
-    if (error) setError(null);
-  };
-
-  const validateForm = () => {
-    if (!formData.nombre.trim()) {
-      setError("El nombre es requerido");
-      return false;
-    }
-    if (!formData.dni.trim()) {
-      setError("El DNI es requerido");
-      return false;
-    }
-    if (formData.dni.trim().length < 7 || formData.dni.trim().length > 8) {
-      setError("El DNI debe tener entre 7 y 8 dígitos");
-      return false;
-    }
-    if (!/^\d+$/.test(formData.dni.trim())) {
-      setError("El DNI debe contener solo números");
-      return false;
-    }
-    if (formData.email.trim() && !isValidEmail(formData.email.trim())) {
-      setError("El email no es válido");
-      return false;
-    }
-    if (!formData.claseLicencia.trim()) {
-      setError("La clase de licencia es requerida");
-      return false;
-    }
-    if (!formData.vencimientoLicencia) {
-      setError("La fecha de vencimiento de la licencia es requerida");
-      return false;
-    }
-    if (new Date(formData.vencimientoLicencia) <= new Date()) {
-      setError("La fecha de vencimiento debe ser futura");
-      return false;
-    }
-    return true;
-  };
-
-  const isValidEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    setLoading(true);
-    setError(null);
-
+  const onSubmit = async (data: ConductorFormData) => {
     try {
       if (isEditing && id) {
         const updateData: UpdateConductorDto = {
           idConductor: parseInt(id),
-          nombre: formData.nombre.trim(),
-          dni: formData.dni.trim(),
-          email: formData.email.trim() || "",
-          telefono: formData.telefono.trim() || "",
-          claseLicencia: formData.claseLicencia.trim(),
-          vencimientoLicencia: new Date(formData.vencimientoLicencia)
+          nombre: data.nombre.trim(),
+          dni: data.dni.trim(),
+          email: data.email?.trim() || "",
+          telefono: data.telefono?.trim() || "",
+          claseLicencia: data.claseLicencia,
+          vencimientoLicencia: new Date(data.vencimientoLicencia)
         };
         
-        const success = await updateExistingConductor(parseInt(id), updateData);
-        if (success) {
-          navigate("/conductores");
-        }
+        await updateConductorMutation.mutateAsync({
+          id: parseInt(id), 
+          data: updateData
+        });
       } else {
         const createData: CreateConductorDto = {
-          nombre: formData.nombre.trim(),
-          dni: formData.dni.trim(),
-          email: formData.email.trim() || "",
-          telefono: formData.telefono.trim() || "",
-          claseLicencia: formData.claseLicencia.trim(),
-          vencimientoLicencia: new Date(formData.vencimientoLicencia)
+          nombre: data.nombre.trim(),
+          dni: data.dni.trim(),
+          email: data.email?.trim() || "",
+          telefono: data.telefono?.trim() || "",
+          claseLicencia: data.claseLicencia,
+          vencimientoLicencia: new Date(data.vencimientoLicencia)
         };
         
-        const success = await createNewConductor(createData);
-        if (success) {
-          navigate("/conductores");
-        }
+        await createConductorMutation.mutateAsync(createData);
       }
-    } catch (err) {
-      setError(isEditing ? "Error al actualizar el conductor" : "Error al crear el conductor");
-    } finally {
-      setLoading(false);
+      navigate("/conductores");
+    } catch (error) {
+      console.error('Error al guardar conductor:', error);
     }
   };
 
@@ -174,6 +147,12 @@ export const ConductorFormPage = () => {
     }
   };
 
+  const setQuickDate = (years: number) => {
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + years);
+    const dateString = futureDate.toISOString().split('T')[0];
+    setValue('vencimientoLicencia', dateString, { shouldValidate: true });
+  };
 
   if (loadingData) {
     return (
@@ -224,168 +203,175 @@ export const ConductorFormPage = () => {
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
+      {/* Error Alert de mutaciones */}
+      {(createConductorMutation.error || updateConductorMutation.error) && (
         <Alert variant="destructive">
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {createConductorMutation.error?.message || updateConductorMutation.error?.message}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Success Alert */}
+      {(createConductorMutation.isSuccess || updateConductorMutation.isSuccess) && (
+        <Alert className="border-green-200 bg-green-50">
+          <AlertTitle className="text-green-800">¡Éxito!</AlertTitle>
+          <AlertDescription className="text-green-700">
+            Conductor {isEditing ? 'actualizado' : 'creado'} correctamente.
+          </AlertDescription>
         </Alert>
       )}
 
       {/* Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Información del Conductor</CardTitle>
+      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Información del Conductor
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               {/* Nombre */}
               <div className="space-y-2">
-                <label htmlFor="nombre" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="nombre">
                   Nombre <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   id="nombre"
-                  type="text"
-                  value={formData.nombre}
-                  onChange={(e) => handleInputChange("nombre", e.target.value)}
+                  {...register("nombre")}
                   placeholder="Ingrese el nombre del conductor"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
+                  className="bg-white/50 border-white/30"
                 />
+                {errors.nombre && (
+                  <p className="text-red-500 text-sm">{errors.nombre.message}</p>
+                )}
               </div>
 
               {/* Email */}
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
+                <Label htmlFor="email">Email</Label>
+                <Input
                   id="email"
                   type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  {...register("email")}
                   placeholder="conductor@ejemplo.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="bg-white/50 border-white/30"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email.message}</p>
+                )}
               </div>
 
               {/* DNI */}
               <div className="space-y-2">
-                <label htmlFor="dni" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="dni">
                   DNI <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   id="dni"
-                  type="text"
-                  value={formData.dni}
-                  onChange={(e) => {
-                    // Solo permitir números
-                    const value = e.target.value.replace(/\D/g, '');
-                    if (value.length <= 8) {
-                      handleInputChange("dni", value);
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
+                  {...register("dni")}
+                  placeholder="12345678"
                   maxLength={8}
+                  className="bg-white/50 border-white/30"
+                  onInput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    target.value = target.value.replace(/\D/g, '');
+                  }}
                 />
+                {errors.dni && (
+                  <p className="text-red-500 text-sm">{errors.dni.message}</p>
+                )}
               </div>
 
               {/* Teléfono */}
               <div className="space-y-2">
-                <label htmlFor="telefono" className="text-sm font-medium text-gray-700">
-                  Teléfono
-                </label>
-                <input
+                <Label htmlFor="telefono">Teléfono</Label>
+                <Input
                   id="telefono"
                   type="tel"
-                  value={formData.telefono}
-                  onChange={(e) => handleInputChange("telefono", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  {...register("telefono")}
+                  placeholder="+54 11 1234-5678"
+                  className="bg-white/50 border-white/30"
                 />
+                {errors.telefono && (
+                  <p className="text-red-500 text-sm">{errors.telefono.message}</p>
+                )}
               </div>
 
               {/* Clase Licencia */}
               <div className="space-y-2">
-                <label htmlFor="claseLicencia" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="claseLicencia">
                   Clase de Licencia <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="claseLicencia"
-                  value={formData.claseLicencia}
-                  onChange={(e) => handleInputChange("claseLicencia", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
+                </Label>
+                <Select 
+                  value={watchedClaseLicencia} 
+                  onValueChange={(value) => setValue('claseLicencia', value, { shouldValidate: true })}
                 >
-                  <option value="">Seleccionar clase de licencia</option>
-                  <option value="A">Clase A - Motocicletas</option>
-                  <option value="B">Clase B - Automóviles</option>
-                  <option value="C">Clase C - Camiones pequeños</option>
-                  <option value="D">Clase D - Transporte de pasajeros</option>
-                  <option value="E">Clase E - Camiones grandes</option>
-                </select>
-              </div>              {/* Vencimiento Licencia */}
+                  <SelectTrigger className="bg-white/50 border-white/30">
+                    <SelectValue placeholder="Seleccionar clase de licencia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A">Clase A - Motocicletas</SelectItem>
+                    <SelectItem value="B">Clase B - Automóviles</SelectItem>
+                    <SelectItem value="C">Clase C - Camiones pequeños</SelectItem>
+                    <SelectItem value="D">Clase D - Transporte de pasajeros</SelectItem>
+                    <SelectItem value="E">Clase E - Camiones grandes</SelectItem>
+                  </SelectContent>
+                </Select>
+                <input
+                  type="hidden"
+                  {...register("claseLicencia")}
+                />
+                {errors.claseLicencia && (
+                  <p className="text-red-500 text-sm">{errors.claseLicencia.message}</p>
+                )}
+              </div>
+
+              {/* Vencimiento Licencia */}
               <div className="space-y-2">
-                <label htmlFor="vencimientoLicencia" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="vencimientoLicencia">
                   Vencimiento de Licencia <span className="text-red-500">*</span>
-                </label>
+                </Label>
                 
                 {/* Sugerencias de fechas comunes */}
-                {!formData.vencimientoLicencia && (
+                {!watchedVencimiento && (
                   <div className="mb-2">
                     <p className="text-xs text-gray-500 mb-2">Fechas comunes:</p>
                     <div className="flex flex-wrap gap-2">
-                      {[1, 2, 3, 5].map(years => {
-                        const futureDate = new Date();
-                        futureDate.setFullYear(futureDate.getFullYear() + years);
-                        const dateString = futureDate.toISOString().split('T')[0];
-                        return (
-                          <button
-                            key={years}
-                            type="button"
-                            onClick={() => handleInputChange("vencimientoLicencia", dateString)}
-                            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                          >
-                            +{years} año{years > 1 ? 's' : ''}
-                          </button>
-                        );
-                      })}
+                      {[1, 2, 3, 5].map(years => (
+                        <button
+                          key={years}
+                          type="button"
+                          onClick={() => setQuickDate(years)}
+                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                        >
+                          +{years} año{years > 1 ? 's' : ''}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
 
                 <div className="relative">
-                  <input
+                  <Input
                     id="vencimientoLicencia"
                     type="date"
-                    value={formData.vencimientoLicencia}
-                    onChange={(e) => handleInputChange("vencimientoLicencia", e.target.value)}
+                    {...register("vencimientoLicencia")}
                     min={new Date().toISOString().split('T')[0]}
-                    className={`w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors ${
-                      formData.vencimientoLicencia ? getLicenseStatusBadge(formData.vencimientoLicencia) : ''
+                    className={`bg-white/50 border-white/30 ${
+                      watchedVencimiento ? getLicenseStatusBadge(watchedVencimiento) : ''
                     }`}
-                    style={{
-                      colorScheme: 'light',
-                      WebkitAppearance: 'none',
-                      appearance: 'none'
-                    }}
-                    required
                   />
-                  {/* Ícono de calendario personalizado */}
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
                 </div>
                 
                 {/* Indicador visual de fecha seleccionada */}
-                {formData.vencimientoLicencia && (
+                {watchedVencimiento && (
                   <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="text-sm text-blue-800">
-                      <strong>Fecha seleccionada:</strong> {new Date(formData.vencimientoLicencia).toLocaleDateString('es-AR', {
+                      <strong>Fecha seleccionada:</strong> {new Date(watchedVencimiento).toLocaleDateString('es-AR', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
@@ -395,25 +381,29 @@ export const ConductorFormPage = () => {
                   </div>
                 )}
 
-                {formData.vencimientoLicencia && (
+                {watchedVencimiento && (
                   <div className="mt-2">
-                    {new Date(formData.vencimientoLicencia) < new Date() ? (
+                    {new Date(watchedVencimiento) < new Date() ? (
                       <div className="flex items-center gap-2 text-red-600 text-sm">
                         <span className="w-2 h-2 bg-red-600 rounded-full"></span>
                         La licencia está vencida
                       </div>
-                    ) : isLicenseExpiringSoon(formData.vencimientoLicencia) ? (
+                    ) : isLicenseExpiringSoon(watchedVencimiento) ? (
                       <div className="flex items-center gap-2 text-yellow-600 text-sm">
                         <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
-                        La licencia vence en {Math.ceil((new Date(formData.vencimientoLicencia).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} días
+                        La licencia vence en {Math.ceil((new Date(watchedVencimiento).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} días
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-green-600 text-sm">
                         <span className="w-2 h-2 bg-green-600 rounded-full"></span>
-                        Licencia vigente hasta {new Date(formData.vencimientoLicencia).toLocaleDateString('es-AR')}
+                        Licencia vigente hasta {new Date(watchedVencimiento).toLocaleDateString('es-AR')}
                       </div>
                     )}
                   </div>
+                )}
+
+                {errors.vencimientoLicencia && (
+                  <p className="text-red-500 text-sm">{errors.vencimientoLicencia.message}</p>
                 )}
               </div>
             </div>
@@ -423,13 +413,20 @@ export const ConductorFormPage = () => {
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/conductores")}
-                disabled={loading}
+                disabled={isSubmitting}
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? (
-                  "Guardando..."
+              <Button 
+                type="submit" 
+                disabled={!isValid || isSubmitting}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Guardando...
+                  </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
