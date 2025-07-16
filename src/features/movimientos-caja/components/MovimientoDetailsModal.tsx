@@ -60,7 +60,7 @@ export const MovimientoDetailsModal = ({
                 <span className="text-sm font-medium text-gray-600">Método de Pago:</span>
                 <p className="text-sm">
                   <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                    Método {movimiento.idMetodoPago || 'N/A'}
+                    {movimiento.metodoPago?.nombre || 'N/A'}
                   </span>
                 </p>
               </div>

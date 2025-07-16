@@ -95,7 +95,7 @@ export const FacturaPagoStatus = ({ factura, showDetails = false }: FacturaPagoS
                   )}
                 </div>
                 <span className="text-gray-600">
-                  ID: {movimiento.idMetodoPago}
+                  ID: {movimiento.metodoPago?.id || 'N/A'}
                 </span>
               </div>
             ))}

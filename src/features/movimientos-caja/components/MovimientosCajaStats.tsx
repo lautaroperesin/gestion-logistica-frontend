@@ -79,7 +79,7 @@ export const MovimientosCajaStats = ({ stats }: MovimientosCajaStatsProps) => {
           <div>
             <p className="text-sm font-medium text-gray-600">Método Más Usado</p>
             <p className="text-2xl font-bold text-orange-600">
-              Método {metodoMasUsado.metodo}
+              {metodoMasUsado.metodo}
             </p>
             <p className="text-sm text-gray-500">
               {metodoMasUsado.cantidad} {metodoMasUsado.cantidad === 1 ? 'vez' : 'veces'}

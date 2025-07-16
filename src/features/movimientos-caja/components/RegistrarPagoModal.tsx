@@ -193,7 +193,7 @@ export const RegistrarPagoModal = ({
                       )}
                     </div>
                     <span className="text-gray-600 text-xs">
-                      Método: {movimiento.idMetodoPago || 'N/A'}
+                      Método: {movimiento.metodoPago?.id || 'N/A'}
                     </span>
                   </div>
                 ))}

@@ -102,7 +102,7 @@ export const useMovimientosStats = (movimientos?: MovimientoCajaDto[]) => {
 
   // Estadísticas por método de pago
   const porMetodo = movimientos.reduce((acc, mov) => {
-    const metodoPago = mov.idMetodoPago?.toString() || 'Sin método';
+    const metodoPago = mov.metodoPago?.id?.toString() || 'Sin método';
     if (!acc[metodoPago]) {
       acc[metodoPago] = { cantidad: 0, monto: 0 };
     }
