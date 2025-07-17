@@ -76,18 +76,16 @@ export const useMovimientosStats = (movimientos?: MovimientoCajaDto[]) => {
     return {
       totalMovimientos: 0,
       montoTotal: 0,
-      promedioMonto: 0,
       porMetodo: {} as Record<string, { cantidad: number; monto: number }>,
     };
   }
 
   const totalMovimientos = movimientos.length;
   const montoTotal = movimientos.reduce((sum, mov) => sum + (mov.monto || 0), 0);
-  const promedioMonto = totalMovimientos > 0 ? montoTotal / totalMovimientos : 0;
 
   // Estadísticas por método de pago
   const porMetodo = movimientos.reduce((acc, mov) => {
-    const metodoPago = mov.metodoPago?.id?.toString() || 'Sin método';
+    const metodoPago = mov.metodoPago?.nombre || 'Sin método';
     if (!acc[metodoPago]) {
       acc[metodoPago] = { cantidad: 0, monto: 0 };
     }
@@ -99,7 +97,6 @@ export const useMovimientosStats = (movimientos?: MovimientoCajaDto[]) => {
   return {
     totalMovimientos,
     montoTotal,
-    promedioMonto,
     porMetodo,
   };
 };

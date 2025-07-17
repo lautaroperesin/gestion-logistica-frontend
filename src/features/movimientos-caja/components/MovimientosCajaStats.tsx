@@ -1,10 +1,9 @@
-import { CreditCard, TrendingUp, DollarSign, Activity } from 'lucide-react';
+import { CreditCard, DollarSign, Activity } from 'lucide-react';
 import { Card } from '../../../components/ui/card';
 
 interface MovimientosStats {
   totalMovimientos: number;
   montoTotal: number;
-  promedioMonto: number;
   porMetodo: Record<string, { cantidad: number; monto: number }>;
 }
 
@@ -13,7 +12,7 @@ interface MovimientosCajaStatsProps {
 }
 
 export const MovimientosCajaStats = ({ stats }: MovimientosCajaStatsProps) => {
-  const { totalMovimientos, montoTotal, promedioMonto, porMetodo } = stats;
+  const { totalMovimientos, montoTotal, porMetodo } = stats;
 
   const metodoMasUsado = Object.entries(porMetodo).reduce(
     (acc, [metodo, data]) => {
@@ -55,21 +54,6 @@ export const MovimientosCajaStats = ({ stats }: MovimientosCajaStatsProps) => {
         </div>
       </Card>
 
-      {/* Promedio por Movimiento */}
-      <Card className="p-6">
-        <div className="flex items-center">
-          <div className="p-3 rounded-full bg-purple-100 mr-4">
-            <TrendingUp className="h-6 w-6 text-purple-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Promedio</p>
-            <p className="text-2xl font-bold text-purple-600">
-              ${promedioMonto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-            </p>
-          </div>
-        </div>
-      </Card>
-
       {/* Método Más Usado */}
       <Card className="p-6">
         <div className="flex items-center">
@@ -96,14 +80,11 @@ export const MovimientosCajaStats = ({ stats }: MovimientosCajaStatsProps) => {
             {Object.entries(porMetodo).map(([metodo, data]) => (
               <div key={metodo} className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">Método {metodo}</span>
+                  <span className="font-medium">{metodo}</span>
                   <span className="text-sm text-gray-600">{data.cantidad} movimientos</span>
                 </div>
                 <div className="text-lg font-bold text-green-600">
                   ${data.monto.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                </div>
-                <div className="text-sm text-gray-500">
-                  Promedio: ${(data.monto / data.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                 </div>
               </div>
             ))}
