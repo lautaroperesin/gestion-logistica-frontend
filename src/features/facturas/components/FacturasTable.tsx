@@ -22,9 +22,9 @@ const getEstadoNombre = (estado: number | undefined): string => {
   const estados = {
     0: 'Borrador',
     1: 'Emitida',
-    2: 'Pagada',
-    3: 'Vencida',
-    4: 'Cancelada',
+    2: 'Parcialmente Pagada',
+    3: 'Pagada',
+    4: 'Vencida',
     5: 'Anulada'
   };
   return estados[estado as keyof typeof estados] || 'Desconocido';
@@ -35,10 +35,10 @@ const getEstadoColor = (estado: number | undefined): string => {
   if (estado === undefined) return 'bg-gray-100 text-gray-800';
   const colores = {
     0: 'bg-gray-100 text-gray-800',
-    1: 'bg-blue-100 text-blue-800',
-    2: 'bg-green-100 text-green-800',
-    3: 'bg-red-100 text-red-800',
-    4: 'bg-yellow-100 text-yellow-800',
+    1: 'bg-yellow-100 text-yellow-800',
+    2: 'bg-blue-100 text-blue-800',
+    3: 'bg-green-100 text-green-800',
+    4: 'bg-red-100 text-red-800',
     5: 'bg-gray-100 text-gray-600'
   };
   return colores[estado as keyof typeof colores] || 'bg-gray-100 text-gray-800';
@@ -180,7 +180,7 @@ export const FacturasTable: React.FC<FacturasTableProps> = ({
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    {onPagar && factura.estado !== 2 && factura.estado !== 5 && (
+                    {onPagar && factura.estado !== 3 && factura.estado !== 5 && (
                       <Button
                         variant="outline"
                         size="icon"
@@ -206,7 +206,7 @@ export const FacturasTable: React.FC<FacturasTableProps> = ({
                       onClick={() => onDelete(factura.idFactura!)}
                       title="Eliminar"
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      disabled={factura.estado === 2 || factura.estado === 5} // No eliminar pagadas o anuladas
+                      disabled={factura.estado === 3 || factura.estado === 5} // No eliminar pagadas o anuladas
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

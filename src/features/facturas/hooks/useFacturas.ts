@@ -96,7 +96,7 @@ export const useFacturaCalculations = (facturas?: FacturaDto[]) => {
     const totalGeneral = facturas.reduce((sum, factura) => sum + (factura.total || 0), 0);
 
     const facturasPendientes = facturas.filter(f => f.estado === 0 || f.estado === 1).length;
-    const facturasPagadas = facturas.filter(f => f.estado === 2).length;
+    const facturasPagadas = facturas.filter(f => f.estado === 3).length;
     const facturasCanceladas = facturas.filter(f => f.estado === 4 || f.estado === 5).length;
 
     return {

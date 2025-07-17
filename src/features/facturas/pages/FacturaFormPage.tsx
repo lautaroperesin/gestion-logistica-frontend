@@ -51,7 +51,7 @@ export const FacturaFormPage = () => {
       numeroFactura: '',
       fechaEmision: new Date().toISOString().split('T')[0],
       fechaVencimiento: '',
-      estado: 0, // Borrador por defecto
+      estado: 1, // Emitida por defecto
       subtotal: 0,
       iva: 0,
       total: 0,
@@ -176,9 +176,9 @@ export const FacturaFormPage = () => {
                 >
                   <option value={0}>Borrador</option>
                   <option value={1}>Emitida</option>
-                  <option value={2}>Pagada</option>
-                  <option value={3}>Vencida</option>
-                  <option value={4}>Cancelada</option>
+                  <option value={2}>Parcialmente Pagada</option>
+                  <option value={3}>Pagada</option>
+                  <option value={4}>Vencida</option>
                   <option value={5}>Anulada</option>
                 </select>
               </div>
