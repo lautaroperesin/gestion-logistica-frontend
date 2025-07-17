@@ -104,14 +104,14 @@ export const MovimientoDetailsModal = ({
                   <span className="text-sm font-medium text-gray-600">Estado:</span>
                   <p className="text-sm">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      movimiento.factura.estado === 1 ? 'bg-yellow-100 text-yellow-800' :
-                      movimiento.factura.estado === 2 ? 'bg-green-100 text-green-800' :
-                      movimiento.factura.estado === 3 ? 'bg-red-100 text-red-800' :
+                      movimiento.factura.estado === 2 ? 'bg-blue-100 text-blue-800' :
+                      movimiento.factura.estado === 3 ? 'bg-green-100 text-green-800' :
+                      movimiento.factura.estado === 4 ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {movimiento.factura.estado === 1 ? 'Pendiente' :
-                       movimiento.factura.estado === 2 ? 'Pagada' :
-                       movimiento.factura.estado === 3 ? 'Vencida' :
+                      {movimiento.factura.estado === 2 ? 'Parcialmente Pagada' :
+                       movimiento.factura.estado === 3 ? 'Pagada' :
+                       movimiento.factura.estado === 4 ? 'Vencida' :
                        'Desconocido'}
                     </span>
                   </p>
@@ -123,7 +123,7 @@ export const MovimientoDetailsModal = ({
           {/* Información del Cliente */}
           {movimiento.factura?.cliente && (
             <Card className="p-4">
-              <h3 className="font-semibold mb-3">Información del Cliente</h3>
+              <h3 className="font-semibold">Información del Cliente</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm font-medium text-gray-600">Nombre:</span>

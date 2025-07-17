@@ -130,7 +130,7 @@ export const MovimientosCajaTable = ({
               <tr key={movimiento.idMovimiento} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {movimiento.fechaPago ? 
-                    format(new Date(movimiento.fechaPago), "dd/MM/yyyy HH:mm", { locale: es }) :
+                    format(new Date(movimiento.fechaPago), "dd/MM/yyyy", { locale: es }) :
                     'N/A'
                   }
                 </td>

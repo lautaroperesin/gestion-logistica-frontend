@@ -14,7 +14,7 @@ import {
 import { Button } from '../../../components/ui/button';
 import { Label } from '../../../components/ui/label';
 import { Alert, AlertDescription } from '../../../components/ui/alert';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { MetodoPagoSelector } from '../../metodos-pago/components/MetodoPagoSelector';
 import { useCreateMovimiento, useMovimientosByFactura } from '../hooks/useMovimientosCaja';
 import type { FacturaDto } from '../../../api';
@@ -142,7 +142,7 @@ export const RegistrarPagoModal = ({
               {totalPagado > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-600">Total Pagado:</span>
-                  <span className="text-lg font-bold text-gray-600">
+                  <span className="text-lg font-bold text-green-600">
                     ${totalPagado.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -155,15 +155,6 @@ export const RegistrarPagoModal = ({
                 </span>
               </div>
             </div>
-
-            {saldoPendiente !== totalFactura && (
-              <Alert className="border-yellow-200 bg-yellow-50">
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-800">
-                  Esta factura ya tiene pagos registrados. El saldo pendiente es ${saldoPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })}.
-                </AlertDescription>
-              </Alert>
-            )}
 
             {estaCompletamentePagada && (
               <Alert className="border-green-200 bg-green-50">
@@ -193,7 +184,7 @@ export const RegistrarPagoModal = ({
                       )}
                     </div>
                     <span className="text-gray-600 text-xs">
-                      Método: {movimiento.metodoPago?.id || 'N/A'}
+                      {movimiento.metodoPago?.nombre || 'N/A'}
                     </span>
                   </div>
                 ))}
@@ -256,16 +247,17 @@ export const RegistrarPagoModal = ({
                   {montoActual > saldoPendiente ? (
                     <p className="text-amber-600 flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />
-                      ⚠️ El monto supera el saldo pendiente (${saldoPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })})
+                      El monto supera el saldo pendiente (${saldoPendiente.toLocaleString('es-AR', { minimumFractionDigits: 2 })})
                     </p>
                   ) : montoActual === saldoPendiente ? (
                     <p className="text-green-600 flex items-center gap-1">
                       <CheckCircle className="h-4 w-4" />
-                      ✅ Pago completo - La factura quedará totalmente pagada
+                      Pago completo - La factura quedará totalmente pagada
                     </p>
                   ) : (
-                    <p className="text-blue-600">
-                      💰 Pago parcial - Quedará un saldo de ${(saldoPendiente - montoActual).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                    <p className="text-blue-600 flex items-center gap-1">
+                      <Info className="h-4 w-4" />
+                      Pago parcial - Quedará un saldo de ${(saldoPendiente - montoActual).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                     </p>
                   )}
                 </div>
