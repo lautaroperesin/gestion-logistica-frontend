@@ -87,6 +87,28 @@ export const useEnviosByEstado = (estadoId: number) => {
   });
 };
 
+// Hook para actualizar estado de un envío
+export const useUpdateEnvioEstado = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ idEnvio, newEstadoId }: { idEnvio: number; newEstadoId: number }) => {
+      if (!idEnvio) throw new Error('ID de envío requerido');
+
+      return enviosService.updateEstado(idEnvio, newEstadoId);
+    },
+    onSuccess: (_, { idEnvio }) => {
+      queryClient.invalidateQueries({ queryKey: enviosKeys.lists() });
+      if (idEnvio) {
+        queryClient.invalidateQueries({ queryKey: enviosKeys.detail(idEnvio) });
+      }
+    },
+    onError: (error) => {
+      console.error('Error updating envio status:', error);
+    },
+  });
+};
+
 // Hook para obtener envíos por cliente
 export const useEnviosByCliente = (clienteId: number) => {
   return useQuery({

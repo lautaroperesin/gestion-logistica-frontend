@@ -62,6 +62,20 @@ export const enviosService = {
     }
   },
 
+  // Actualizar estado de un envío
+  updateEstado: async (id: number, estadoId: number): Promise<void> =>
+  {
+    try {
+      await api.apiEnviosIdEstadoPatch({
+        id,
+        estadoEnvioDto: { idEstado: estadoId }
+      });
+    } catch (error) {
+      console.error('Error al actualizar estado de envío:', error);
+      throw new Error('Error al actualizar el estado del envío');
+    }
+  },
+
   // Obtener envíos por estado
   getByEstado: async (estadoId: number): Promise<EnvioDto[]> => {
     try {

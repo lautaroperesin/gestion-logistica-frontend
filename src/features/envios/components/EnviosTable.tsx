@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Edit, Eye, Package, User, MapPin } from 'lucide-react';
+import { Trash2, Edit, Eye, Package, User, MapPin, RotateCcw, Calendar } from 'lucide-react';
 import type { EnvioDto } from '@/api';
 
 interface EnviosTableProps {
@@ -11,6 +11,8 @@ interface EnviosTableProps {
   onEdit: (envio: EnvioDto) => void;
   onDelete: (id: number) => void;
   onView: (envio: EnvioDto) => void;
+  onChangeStatus?: (envio: EnvioDto) => void;
+  onUpdateDates?: (envio: EnvioDto) => void;
 }
 
 export const EnviosTable: React.FC<EnviosTableProps> = ({
@@ -19,6 +21,8 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
   onEdit,
   onDelete,
   onView,
+  onChangeStatus,
+  onUpdateDates,
 }) => {
   const formatDate = (dateValue?: Date | string | null) => {
     if (!dateValue) return '-';
@@ -147,13 +151,15 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEstadoBadgeColor(
+                    <button
+                      onClick={() => onChangeStatus?.(envio)}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors hover:opacity-80 cursor-pointer ${getEstadoBadgeColor(
                         envio.estado?.nombre
                       )}`}
+                      title="Hacer clic para cambiar estado"
                     >
                       {envio.estado?.nombre || 'Sin estado'}
-                    </span>
+                    </button>
                   </td>
                   <td className="py-3 px-4 text-black">                 
                       <div className="text-sm">
@@ -170,7 +176,20 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
                   </td>
                   <td className="py-3 px-4 text-black">
                     <div className="text-sm">
-                      <div>{formatDate(envio.fechaSalidaProgramada)}</div>
+                      <div className="flex items-center gap-2">
+                        <span>{formatDate(envio.fechaSalidaProgramada)}</span>
+                        {envio.fechaSalidaReal && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Real
+                          </span>
+                        )}
+                      </div>
+                      {envio.fechaEntregaReal && (
+                        <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
+                          <span>Entregado:</span>
+                          <span className="text-green-600 font-medium">{formatDate(envio.fechaEntregaReal)}</span>
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="py-3 px-4 text-black">
@@ -181,20 +200,40 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => onView(envio)}
                         className="h-8 w-8 p-0 text-black/70 hover:text-black hover:bg-black/10"
+                        title="Ver detalles"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
+                        onClick={() => onChangeStatus?.(envio)}
+                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        title="Cambiar estado"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onUpdateDates?.(envio)}
+                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        title="Actualizar fechas"
+                      >
+                        <Calendar className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => onEdit(envio)}
                         className="h-8 w-8 p-0 text-black/70 hover:text-black hover:bg-black/10"
+                        title="Editar envío"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -203,6 +242,7 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
                         variant="ghost"
                         onClick={() => envio.idEnvio && onDelete(envio.idEnvio)}
                         className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                        title="Eliminar envío"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

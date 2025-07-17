@@ -6,6 +6,8 @@ import { Plus, Package } from 'lucide-react';
 import { useEnvios, useDeleteEnvio } from '../hooks/useEnvios';
 import { EnviosTable } from '../components/EnviosTable';
 import { EnvioDetailsModal } from '../components/EnvioDetailsModal';
+import { CambiarEstadoModal } from '../components/CambiarEstadoModal';
+import { ActualizarFechasModal } from '../components/ActualizarFechasModal';
 import type { EnvioDto } from '@/api';
 
 export const EnviosPage = () => {
@@ -17,6 +19,8 @@ export const EnviosPage = () => {
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [selectedEnvio, setSelectedEnvio] = useState<EnvioDto | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showChangeStatusModal, setShowChangeStatusModal] = useState(false);
+  const [showUpdateDatesModal, setShowUpdateDatesModal] = useState(false);
 
   const handleCreate = () => {
     navigate('/envios/nuevo');
@@ -31,6 +35,21 @@ export const EnviosPage = () => {
   const handleView = (envio: EnvioDto) => {
     setSelectedEnvio(envio);
     setShowDetailsModal(true);
+  };
+
+  const handleChangeStatus = (envio: EnvioDto) => {
+    setSelectedEnvio(envio);
+    setShowChangeStatusModal(true);
+  };
+
+  const handleUpdateDates = (envio: EnvioDto) => {
+    setSelectedEnvio(envio);
+    setShowUpdateDatesModal(true);
+  };
+
+  const handleModalSuccess = () => {
+    setDeleteSuccess(true);
+    setTimeout(() => setDeleteSuccess(false), 3000);
   };
 
   const handleDelete = async (id: number) => {
@@ -90,6 +109,8 @@ export const EnviosPage = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
+        onChangeStatus={handleChangeStatus}
+        onUpdateDates={handleUpdateDates}
       />
       
       {/* Loading overlay for delete */}
@@ -109,6 +130,22 @@ export const EnviosPage = () => {
         envio={selectedEnvio}
         open={showDetailsModal}
         onOpenChange={setShowDetailsModal}
+      />
+
+      {/* Modal de cambio de estado */}
+      <CambiarEstadoModal
+        envio={selectedEnvio}
+        open={showChangeStatusModal}
+        onOpenChange={setShowChangeStatusModal}
+        onSuccess={handleModalSuccess}
+      />
+
+      {/* Modal de actualización de fechas */}
+      <ActualizarFechasModal
+        envio={selectedEnvio}
+        open={showUpdateDatesModal}
+        onOpenChange={setShowUpdateDatesModal}
+        onSuccess={handleModalSuccess}
       />
     </div>
   );
