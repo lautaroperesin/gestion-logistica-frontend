@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { movimientosCajaService } from '../services/movimientosCajaService';
 import type { 
   MovimientoCajaDto, 
-  CreateMovimientoCajaDto,
-  MetodoPagoDto
+  CreateMovimientoCajaDto
 } from '../../../api';
 
 // Query keys
@@ -14,11 +13,6 @@ export const movimientosKeys = {
   details: () => [...movimientosKeys.all, 'detail'] as const,
   detail: (id: number) => [...movimientosKeys.details(), id] as const,
   byFactura: (facturaId: number) => [...movimientosKeys.all, 'factura', facturaId] as const,
-};
-
-export const metodosKeys = {
-  all: ['metodos-pago'] as const,
-  lists: () => [...metodosKeys.all, 'list'] as const,
 };
 
 // Hook para obtener todos los movimientos
@@ -45,15 +39,6 @@ export const useMovimientosByFactura = (facturaId: number) => {
     queryKey: movimientosKeys.byFactura(facturaId),
     queryFn: () => movimientosCajaService.getByFactura(facturaId),
     enabled: facturaId > 0,
-  });
-};
-
-// Hook para obtener métodos de pago
-export const useMetodosPago = () => {
-  return useQuery({
-    queryKey: metodosKeys.lists(),
-    queryFn: () => movimientosCajaService.getMetodosPago(),
-    staleTime: 10 * 60 * 1000, // 10 minutos
   });
 };
 

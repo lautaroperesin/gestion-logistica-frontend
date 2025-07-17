@@ -1,9 +1,8 @@
-import { MovimientosCajaApi, MetodosPagoApi } from '@/api';
+import { MovimientosCajaApi } from '@/api';
 import { apiConfig } from '@/api/config';
-import type { MovimientoCajaDto, CreateMovimientoCajaDto, MetodoPagoDto } from '@/api';
+import type { MovimientoCajaDto, CreateMovimientoCajaDto } from '@/api';
 
 const movimientosApi = new MovimientosCajaApi(apiConfig);
-const metodosApi = new MetodosPagoApi(apiConfig);
 
 export const movimientosCajaService = {
   // Obtener todos los movimientos
@@ -53,29 +52,11 @@ export const movimientosCajaService = {
   // Obtener movimientos por factura
   getByFactura: async (facturaId: number): Promise<MovimientoCajaDto[]> => {
     try {
-      const allMovimientos = await movimientosCajaService.getAll();
-      return allMovimientos.filter(mov => mov.factura?.idFactura === facturaId);
+      const response = await movimientosApi.apiMovimientosCajaFacturaIdFacturaGet({ idFactura: facturaId });
+      return response || [];
     } catch (error) {
       console.error('Error al obtener movimientos por factura:', error);
       throw new Error('Error al cargar los pagos de la factura');
     }
-  },
-
-  // Obtener métodos de pago disponibles
-  getMetodosPago: async (): Promise<MetodoPagoDto[]> => {
-    try {
-      const response = await metodosApi.apiMetodosPagoGet();
-      return response || [];
-    } catch (error) {
-      console.error('Error al obtener métodos de pago:', error);
-      throw new Error('Error al cargar los métodos de pago');
-    }
   }
 };
-
-// Funciones de conveniencia
-export const fetchMovimientosCaja = () => movimientosCajaService.getAll();
-export const fetchMovimientoCajaById = (id: number) => movimientosCajaService.getById(id);
-export const createMovimientoCaja = (movimiento: CreateMovimientoCajaDto) => movimientosCajaService.create(movimiento);
-export const deleteMovimientoCaja = (id: number) => movimientosCajaService.delete(id);
-export const fetchMetodosPago = () => movimientosCajaService.getMetodosPago();
