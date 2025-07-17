@@ -103,9 +103,10 @@ export const RegistrarPagoModal = ({
           <DialogTitle>Registrar Pago</DialogTitle>
           <DialogDescription>
             Registra un pago para la factura N° {factura.numeroFactura}
-            {estaCompletamentePagada && (
+            {estaCompletamentePagada && (              
               <span className="block text-green-600 font-medium mt-1">
-                ✅ Esta factura ya está completamente pagada
+                <CheckCircle className="inline-block h-4 w-4 mr-1" />
+                Esta factura ya está completamente pagada
               </span>
             )}
           </DialogDescription>
