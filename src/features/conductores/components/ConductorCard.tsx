@@ -51,7 +51,7 @@ export const ConductorCard = ({ conductor, onEdit, onDelete }: ConductorCardProp
                     <span>Clase Licencia: {conductor.claseLicencia}</span>
                 </div>
                 <div className="flex items-center space-x-3 text-sm text-gray-600">
-                    <span>Vencimiento Licencia: FECHA VENCIMIENTO</span>
+                    <span>Vencimiento Licencia: {conductor.vencimientoLicencia?.toLocaleDateString()}</span>
                 </div>
             </div>
           </div>
