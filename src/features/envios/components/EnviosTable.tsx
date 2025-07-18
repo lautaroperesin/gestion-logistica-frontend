@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Edit, Eye, Package, User, MapPin, RotateCcw } from 'lucide-react';
 import type { EnvioDto } from '@/api';
+import { EstadoBadge } from './EstadoBadge';
 
 interface EnviosTableProps {
   envios: EnvioDto[];
@@ -149,15 +150,12 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <button
-                      onClick={() => onChangeStatus?.(envio)}
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors hover:opacity-80 cursor-pointer ${getEstadoBadgeColor(
-                        envio.estado?.nombre
-                      )}`}
-                      title="Hacer clic para cambiar estado"
-                    >
-                      {envio.estado?.nombre || 'Sin estado'}
-                    </button>
+                  <EstadoBadge 
+                    envio={envio}
+                    interactive={true}
+                    onClick={onChangeStatus}
+                    size="sm"
+                  />
                   </td>
                   <td className="py-3 px-4 text-black">                 
                       <div className="text-sm">
