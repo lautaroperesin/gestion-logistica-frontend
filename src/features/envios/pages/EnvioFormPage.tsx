@@ -29,14 +29,10 @@ const envioSchema = z.object({
   numeroSeguimiento: z.string({
     message: 'El número de seguimiento es requerido',
   }).min(1, 'El número de seguimiento es requerido'),
-  
-  fechaSalidaProgramada: z.string({
-    message: 'La fecha de salida programada es requerida',
-  }).min(1, 'La fecha de salida programada es requerida'),
-  
-  fechaEntregaEstimada: z.string({
-    message: 'La fecha de entrega estimada es requerida',
-  }).min(1, 'La fecha de entrega estimada es requerida'),
+
+  fechaSalida: z.string({
+    message: 'La fecha de salida es requerida',
+  }).min(1, 'La fecha de salida es requerida'),
   
   idEstado: z.number({
     message: 'El estado es requerido',
@@ -101,8 +97,7 @@ export const EnvioFormPage: React.FC = () => {
       idOrigen: 0,
       idDestino: 0,
       numeroSeguimiento: '',
-      fechaSalidaProgramada: '',
-      fechaEntregaEstimada: '',
+      fechaSalida: '',
       idEstado: 0,
       pesoKg: 0,
       volumenM3: 0,
@@ -124,11 +119,8 @@ export const EnvioFormPage: React.FC = () => {
         idOrigen: envio.origen?.idUbicacion || 0,
         idDestino: envio.destino?.idUbicacion || 0,
         numeroSeguimiento: envio.numeroSeguimiento || '',
-        fechaSalidaProgramada: envio.fechaSalidaProgramada 
-          ? new Date(envio.fechaSalidaProgramada).toISOString().slice(0, 16)
-          : '',
-        fechaEntregaEstimada: envio.fechaEntregaEstimada 
-          ? new Date(envio.fechaEntregaEstimada).toISOString().slice(0, 16)
+        fechaSalida: envio.fechaSalida
+          ? new Date(envio.fechaSalida).toISOString().slice(0, 16)
           : '',
         idEstado: envio.estado?.idEstado || 0,
         pesoKg: envio.pesoKg || 0,
@@ -152,15 +144,13 @@ export const EnvioFormPage: React.FC = () => {
         const envioData: UpdateEnvioDto = {
           idEnvio: parseInt(id),
           ...data,
-          fechaSalidaProgramada: new Date(data.fechaSalidaProgramada),
-          fechaEntregaEstimada: new Date(data.fechaEntregaEstimada),
+          fechaSalida: new Date(data.fechaSalida)
         };
         await updateEnvioMutation.mutateAsync({ id: parseInt(id), data: envioData });
       } else {
         const envioData: CreateEnvioDto = {
           ...data,
-          fechaSalidaProgramada: new Date(data.fechaSalidaProgramada),
-          fechaEntregaEstimada: new Date(data.fechaEntregaEstimada),
+          fechaSalida: new Date(data.fechaSalida)
         };
         await createEnvioMutation.mutateAsync(envioData);
       }
@@ -292,29 +282,15 @@ export const EnvioFormPage: React.FC = () => {
                   Fecha de Salida Programada *
                 </label>
                 <input
-                  {...register('fechaSalidaProgramada')}
+                  {...register('fechaSalida')}
                   type="datetime-local"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 />
-                {errors.fechaSalidaProgramada && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fechaSalidaProgramada.message}</p>
+                {errors.fechaSalida && (
+                  <p className="text-red-500 text-sm mt-1">{errors.fechaSalida.message}</p>
                 )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Fecha de Entrega Estimada *
-                </label>
-                <input
-                  {...register('fechaEntregaEstimada')}
-                  type="datetime-local"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-                />
-                {errors.fechaEntregaEstimada && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fechaEntregaEstimada.message}</p>
-                )}
               </div>
-            </div>
 
             {/* Detalles del Envío */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
