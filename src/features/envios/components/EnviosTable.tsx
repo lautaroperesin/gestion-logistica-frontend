@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Edit, Eye, Package, User, MapPin, RotateCcw, Calendar } from 'lucide-react';
+import { Trash2, Edit, Eye, Package, User, MapPin, RotateCcw } from 'lucide-react';
 import type { EnvioDto } from '@/api';
 
 interface EnviosTableProps {
@@ -12,7 +12,6 @@ interface EnviosTableProps {
   onDelete: (id: number) => void;
   onView: (envio: EnvioDto) => void;
   onChangeStatus?: (envio: EnvioDto) => void;
-  onUpdateDates?: (envio: EnvioDto) => void;
 }
 
 export const EnviosTable: React.FC<EnviosTableProps> = ({
@@ -22,7 +21,6 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
   onDelete,
   onView,
   onChangeStatus,
-  onUpdateDates,
 }) => {
   const formatDate = (dateValue?: Date | string | null) => {
     if (!dateValue) return '-';
@@ -176,20 +174,7 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
                   </td>
                   <td className="py-3 px-4 text-black">
                     <div className="text-sm">
-                      <div className="flex items-center gap-2">
-                        <span>{formatDate(envio.fechaSalidaProgramada)}</span>
-                        {envio.fechaSalidaReal && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                            Real
-                          </span>
-                        )}
-                      </div>
-                      {envio.fechaEntregaReal && (
-                        <div className="text-xs text-gray-600 flex items-center gap-1 mt-1">
-                          <span>Entregado:</span>
-                          <span className="text-green-600 font-medium">{formatDate(envio.fechaEntregaReal)}</span>
-                        </div>
-                      )}
+                      <div>{formatDate(envio.fechaSalida)}</div>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-black">
@@ -218,15 +203,6 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
                         title="Cambiar estado"
                       >
                         <RotateCcw className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onUpdateDates?.(envio)}
-                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                        title="Actualizar fechas"
-                      >
-                        <Calendar className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"

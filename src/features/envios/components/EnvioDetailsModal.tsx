@@ -214,68 +214,18 @@ export const EnvioDetailsModal: React.FC<EnvioDetailsModalProps> = ({
                   </div>
                   <h3 className="font-semibold text-lg">Cronograma</h3>
                 </div>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Fechas Programadas */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm text-gray-600 border-b pb-1">Fechas Programadas</h4>
-                      <div>
-                        <p className="font-medium text-sm text-gray-600">Creación del Envío</p>
-                        <p className="text-sm">{formatDate(envio.fechaCreacionEnvio)}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-gray-600">Salida Programada</p>
-                        <p className="text-sm">{formatDate(envio.fechaSalidaProgramada)}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-gray-600">Entrega Estimada</p>
-                        <p className="text-sm">{formatDate(envio.fechaEntregaEstimada)}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Fechas Reales */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm text-gray-600 border-b pb-1">Fechas Reales</h4>
-                      <div>
-                        <p className="font-medium text-sm text-gray-600">Salida Real</p>
-                        {envio.fechaSalidaReal ? (
-                          <p className="text-sm text-green-600 font-medium">{formatDate(envio.fechaSalidaReal)}</p>
-                        ) : (
-                          <p className="text-sm text-gray-400 italic">Aún no registrada</p>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-gray-600">Entrega Real</p>
-                        {envio.fechaEntregaReal ? (
-                          <p className="text-sm text-green-600 font-medium">{formatDate(envio.fechaEntregaReal)}</p>
-                        ) : (
-                          <p className="text-sm text-gray-400 italic">Aún no registrada</p>
-                        )}
-                      </div>
-                      
-                      {/* Indicador de retrasos */}
-                      {envio.fechaSalidaReal && envio.fechaSalidaProgramada && (
-                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-                          <p className="text-xs text-blue-800">
-                            {new Date(envio.fechaSalidaReal) > new Date(envio.fechaSalidaProgramada) 
-                              ? '⚠️ Salida con retraso'
-                              : '✅ Salida a tiempo'
-                            }
-                          </p>
-                        </div>
-                      )}
-                      
-                      {envio.fechaEntregaReal && envio.fechaEntregaEstimada && (
-                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-                          <p className="text-xs text-blue-800">
-                            {new Date(envio.fechaEntregaReal) > new Date(envio.fechaEntregaEstimada) 
-                              ? '⚠️ Entrega con retraso'
-                              : '✅ Entrega a tiempo'
-                            }
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-600">Fecha de Creación</p>
+                    <p className="text-sm">{formatDate(envio.fechaCreacionEnvio)}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm text-gray-600">Fecha de Salida</p>
+                    {envio.fechaSalida ? (
+                      <p className="text-sm text-green-600 font-medium">{formatDate(envio.fechaSalida)}</p>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">No programada</p>
+                    )}
                   </div>
                 </div>
               </CardContent>

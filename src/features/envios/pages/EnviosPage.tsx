@@ -7,7 +7,6 @@ import { useEnvios, useDeleteEnvio } from '../hooks/useEnvios';
 import { EnviosTable } from '../components/EnviosTable';
 import { EnvioDetailsModal } from '../components/EnvioDetailsModal';
 import { CambiarEstadoModal } from '../components/CambiarEstadoModal';
-import { ActualizarFechasModal } from '../components/ActualizarFechasModal';
 import type { EnvioDto } from '@/api';
 
 export const EnviosPage = () => {
@@ -20,7 +19,6 @@ export const EnviosPage = () => {
   const [selectedEnvio, setSelectedEnvio] = useState<EnvioDto | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showChangeStatusModal, setShowChangeStatusModal] = useState(false);
-  const [showUpdateDatesModal, setShowUpdateDatesModal] = useState(false);
 
   const handleCreate = () => {
     navigate('/envios/nuevo');
@@ -40,11 +38,6 @@ export const EnviosPage = () => {
   const handleChangeStatus = (envio: EnvioDto) => {
     setSelectedEnvio(envio);
     setShowChangeStatusModal(true);
-  };
-
-  const handleUpdateDates = (envio: EnvioDto) => {
-    setSelectedEnvio(envio);
-    setShowUpdateDatesModal(true);
   };
 
   const handleModalSuccess = () => {
@@ -110,7 +103,6 @@ export const EnviosPage = () => {
         onDelete={handleDelete}
         onView={handleView}
         onChangeStatus={handleChangeStatus}
-        onUpdateDates={handleUpdateDates}
       />
       
       {/* Loading overlay for delete */}
@@ -137,14 +129,6 @@ export const EnviosPage = () => {
         envio={selectedEnvio}
         open={showChangeStatusModal}
         onOpenChange={setShowChangeStatusModal}
-        onSuccess={handleModalSuccess}
-      />
-
-      {/* Modal de actualización de fechas */}
-      <ActualizarFechasModal
-        envio={selectedEnvio}
-        open={showUpdateDatesModal}
-        onOpenChange={setShowUpdateDatesModal}
         onSuccess={handleModalSuccess}
       />
     </div>
