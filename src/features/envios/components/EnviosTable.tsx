@@ -41,22 +41,6 @@ export const EnviosTable: React.FC<EnviosTableProps> = ({
     }).format(amount);
   };
 
-  const getEstadoBadgeColor = (estado?: string | null) => {
-    switch (estado?.toLowerCase()) {
-      case 'pendiente':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'en transito':
-      case 'en tránsito':
-        return 'bg-blue-100 text-blue-800';
-      case 'entregado':
-        return 'bg-green-100 text-green-800';
-      case 'cancelado':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (loading) {
     return (
       <Card className="bg-black/10 backdrop-blur-md border-black/20">
