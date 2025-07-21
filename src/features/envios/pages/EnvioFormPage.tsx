@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { ArrowLeft, Save, Package } from 'lucide-react';
 import { useEnvio, useCreateEnvio, useUpdateEnvio } from '../hooks/useEnvios';
-import { EstadoEnvioSelector } from '../components/EstadoEnvioSelector';
 import { UbicacionSelectorSimple } from '@/features/ubicaciones/components/UbicacionSelectorSimple';
 import { ClienteSelector } from '@/features/clientes/components/ClienteSelector';
 import { ConductorSelector } from '@/features/conductores/components/ConductorSelector';
@@ -238,15 +237,19 @@ export const EnvioFormPage: React.FC = () => {
                 )}
               </div>
 
+               {/* Fecha de salida */}
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Estado del Envío *
+                  Fecha de Salida Programada *
                 </label>
-                <EstadoEnvioSelector
-                  value={watch('idEstado')}
-                  onValueChange={(value: number) => setValue('idEstado', value, { shouldValidate: true })}
-                  error={errors.idEstado?.message}
+                <input
+                  {...register('fechaSalida')}
+                  type="datetime-local"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 />
+                {errors.fechaSalida && (
+                  <p className="text-red-500 text-sm mt-1">{errors.fechaSalida.message}</p>
+                )}
               </div>
             </div>
 
@@ -274,23 +277,6 @@ export const EnvioFormPage: React.FC = () => {
                 />
               </div>
             </div>
-
-            {/* Fechas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Fecha de Salida Programada *
-                </label>
-                <input
-                  {...register('fechaSalida')}
-                  type="datetime-local"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-                />
-                {errors.fechaSalida && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fechaSalida.message}</p>
-                )}
-              </div>
-              </div>
 
             {/* Detalles del Envío */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -1,21 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { enviosService } from '../services/enviosService';
+import { enviosService, type EnviosFilters } from '../services/enviosService';
 import type { EnvioDto, CreateEnvioDto, UpdateEnvioDto } from '@/api';
 
 // Query keys para React Query
 export const enviosKeys = {
   all: ['envios'] as const,
   lists: () => [...enviosKeys.all, 'list'] as const,
-  list: (page: number, pageSize: number) => [...enviosKeys.lists(), { page, pageSize }] as const,
+  list: (page: number, pageSize: number, filters: EnviosFilters) => 
+    [...enviosKeys.lists(), { page, pageSize, filters }] as const,
   details: () => [...enviosKeys.all, 'detail'] as const,
   detail: (id: number) => [...enviosKeys.details(), id] as const,
 };
 
-// Hook para obtener todos los envíos
-export const useEnvios = (page: number = 1, pageSize: number = 10) => {
+// Hook para obtener envíos con filtros y paginación
+export const useEnvios = (
+  page: number = 1, 
+  pageSize: number = 10, 
+  filters: EnviosFilters = {}
+) => {
   return useQuery({
-    queryKey: enviosKeys.list(page, pageSize),
-    queryFn: () => enviosService.getAll(),
+    queryKey: enviosKeys.list(page, pageSize, filters),
+    queryFn: () => enviosService.getAll(page, pageSize, filters),
     staleTime: 5 * 60 * 1000, // 5 minutos
     placeholderData: (previousData) => previousData,
   });
@@ -121,12 +126,13 @@ export const useEnviosByCliente = (clienteId: number) => {
 
 // Hook para estadísticas de envíos
 export const useEnviosStats = () => {
-  const { data: envios = [] } = useEnvios(1, 1000);
+  const { data: enviosData } = useEnvios(1, 1000);
+  const envios = enviosData?.items || [];
   
   return {
-    totalEnvios: envios.length,
+    totalEnvios: enviosData?.totalItems || 0,
     enviosPendientes: envios.filter((e: EnvioDto) => e.estado?.idEstado === 1).length,
     enviosEntregados: envios.filter((e: EnvioDto) => e.estado?.idEstado === 2).length,
-    loading: !envios,
+    loading: !enviosData,
   };
 };

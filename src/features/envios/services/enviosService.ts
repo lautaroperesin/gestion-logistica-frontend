@@ -1,15 +1,43 @@
 import { EnviosApi } from '@/api';
 import { apiConfig } from '@/api/config';
-import type { EnvioDto, CreateEnvioDto, UpdateEnvioDto } from '@/api';
+import type { EnvioDto, CreateEnvioDto, UpdateEnvioDto, EnvioDtoPagedResult } from '@/api';
 
 const api = new EnviosApi(apiConfig);
 
+export interface EnviosFilters {
+  idConductor?: number;
+  idCliente?: number;
+  idVehiculo?: number;
+  fechaSalidaDesde?: Date;
+  fechaSalidaHasta?: Date;
+  estadoEnvio?: number;
+  numeroSeguimiento?: string;
+  origen?: string;
+  destino?: string;
+}
+
 export const enviosService = {
-  // Obtener todos los envíos
-  getAll: async (): Promise<EnvioDto[]> => {
+  // Obtener envíos con filtros y paginación
+  getAll: async (
+    page: number = 1, 
+    pageSize: number = 10, 
+    filters: EnviosFilters = {}
+  ): Promise<EnvioDtoPagedResult> => {
     try {
-      const response = await api.apiEnviosGet({ pageNumber: 1, pageSize: 1000 });
-      return response.items || [];
+      const response = await api.apiEnviosGet({
+        pageNumber: page,
+        pageSize: pageSize,
+        idConductor: filters.idConductor,
+        idCliente: filters.idCliente,
+        idVehiculo: filters.idVehiculo,
+        fechaSalidaDesde: filters.fechaSalidaDesde,
+        fechaSalidaHasta: filters.fechaSalidaHasta,
+        estadoEnvio: filters.estadoEnvio,
+        numeroSeguimiento: filters.numeroSeguimiento,
+        origen: filters.origen,
+        destino: filters.destino,
+      });
+      return response;
     } catch (error) {
       console.error('Error al obtener envíos:', error);
       throw new Error('Error al cargar los envíos');
@@ -79,8 +107,8 @@ export const enviosService = {
   // Obtener envíos por estado
   getByEstado: async (estadoId: number): Promise<EnvioDto[]> => {
     try {
-      const allEnvios = await enviosService.getAll();
-      return allEnvios.filter(envio => envio.estado?.idEstado === estadoId);
+      const response = await enviosService.getAll(1, 1000, { estadoEnvio: estadoId });
+      return response.items || [];
     } catch (error) {
       console.error('Error al obtener envíos por estado:', error);
       throw new Error('Error al cargar los envíos por estado');
@@ -90,8 +118,8 @@ export const enviosService = {
   // Obtener envíos por cliente
   getByCliente: async (clienteId: number): Promise<EnvioDto[]> => {
     try {
-      const allEnvios = await enviosService.getAll();
-      return allEnvios.filter(envio => envio.cliente?.idCliente === clienteId);
+      const response = await enviosService.getAll(1, 1000, { idCliente: clienteId });
+      return response.items || [];
     } catch (error) {
       console.error('Error al obtener envíos por cliente:', error);
       throw new Error('Error al cargar los envíos del cliente');
@@ -99,8 +127,9 @@ export const enviosService = {
   }
 };
 
-// Funciones de conveniencia
-export const fetchEnvios = () => enviosService.getAll();
+// Funciones de conveniencia actualizadas
+export const fetchEnvios = (page: number = 1, pageSize: number = 10, filters: EnviosFilters = {}) => 
+  enviosService.getAll(page, pageSize, filters);
 export const fetchEnvioById = (id: number) => enviosService.getById(id);
 export const createEnvio = (envio: CreateEnvioDto) => enviosService.create(envio);
 export const updateEnvio = (id: number, envio: UpdateEnvioDto) => enviosService.update(id, envio);

@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import TiposCargaTable from "../components/TiposCargaTable";
 
 export const TiposCargaListPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const { confirm } = useConfirmation();
   
   const { data: tiposCarga = [], isLoading: loading, error, refetch } = useTiposCarga();
   const deleteTipoCargaMutation = useDeleteTipoCarga();
@@ -21,11 +24,22 @@ export const TiposCargaListPage = () => {
   );
 
   const handleDelete = async (id: number, nombre: string) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el tipo de carga "${nombre}"?`)) {
+    const confirmed = await confirm({
+      title: '¿Estás seguro?',
+      description: 'Esta acción eliminará permanentemente el tipo de carga. Esta acción no se puede deshacer.',
+      itemName: nombre,
+      variant: 'destructive'
+    });
+
+    if (confirmed) {
       try {
         await deleteTipoCargaMutation.mutateAsync(id);
+        showDeleteSuccessToast(nombre);
       } catch (error) {
-        console.error('Error deleting tipo de carga:', error);
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar tipo de carga',
+          'Error al eliminar'
+        );
       }
     }
   };

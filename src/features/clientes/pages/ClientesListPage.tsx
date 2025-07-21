@@ -1,4 +1,4 @@
-import { Plus, Search, Users, AlertTriangle } from "lucide-react";
+import { Plus, Search, Users } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useClientes, useDeleteCliente } from "../hooks/useClientes";
@@ -7,9 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClienteCard } from "../components/ClienteCard";
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 
 export const ClientesPage = () => {
   const navigate = useNavigate();
+  const { confirm } = useConfirmation();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -34,12 +37,25 @@ export const ClientesPage = () => {
   );
 
   const handleDelete = async (id: number, nombre: string) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al cliente "${nombre}"?`)) {
+    const confirmed = await confirm({
+      title: "¿Confirmar eliminación?",
+      description: "Esta acción no se puede deshacer.",
+      itemName: nombre,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "destructive"
+    });
+
+    if (confirmed) {
       try {
         await deleteClienteMutation.mutateAsync(id);
+        showDeleteSuccessToast(nombre);
         // React Query actualizará automáticamente la lista
       } catch (error) {
-        console.error('Error al eliminar cliente:', error);
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar cliente',
+          'Error al eliminar'
+        );
       }
     }
   };

@@ -7,12 +7,15 @@ import { useMovimientos, useDeleteMovimiento, useMovimientosStats } from '../hoo
 import { MovimientosCajaTable } from '../components/MovimientosCajaTable';
 import { MovimientosCajaStats } from '../components/MovimientosCajaStats';
 import { MovimientoDetailsModal } from '../components/MovimientoDetailsModal';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { MovimientoCajaDto } from '../../../api';
 
 export const MovimientosCajaPage = () => {
   const navigate = useNavigate();
   const [selectedMovimiento, setSelectedMovimiento] = useState<MovimientoCajaDto | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const { confirm } = useConfirmation();
 
   const { 
     data: movimientosResult, 
@@ -31,12 +34,27 @@ export const MovimientosCajaPage = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este movimiento de caja?')) {
+    // Buscar el movimiento para obtener su información
+    const movimiento = movimientos.find(m => m.idMovimiento === id);
+    const movimientoName = movimiento?.observaciones || `Movimiento #${id}`;
+
+    const confirmed = await confirm({
+      title: '¿Estás seguro?',
+      description: 'Esta acción eliminará permanentemente el movimiento de caja. Esta acción no se puede deshacer.',
+      itemName: movimientoName,
+      variant: 'destructive'
+    });
+
+    if (confirmed) {
       try {
         await deleteMovimiento.mutateAsync(id);
+        showDeleteSuccessToast(movimientoName);
         refetch();
       } catch (error) {
-        console.error('Error al eliminar movimiento:', error);
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar movimiento',
+          'Error al eliminar'
+        );
       }
     }
   };

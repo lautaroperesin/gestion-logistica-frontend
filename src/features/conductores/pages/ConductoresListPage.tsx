@@ -7,11 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConductorCard } from "../components/ConductorCard";
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { ConductorDto } from "@/api";
 
 export const ConductoresPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const { confirm } = useConfirmation();
   
   const { data: result, isLoading: loading, error, refetch } = useConductores();
   const deleteConductorMutation = useDeleteConductor();
@@ -26,11 +29,22 @@ export const ConductoresPage = () => {
   );
 
   const handleDelete = async (id: number, nombre: string) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al conductor "${nombre}"?`)) {
+    const confirmed = await confirm({
+      title: '¿Estás seguro?',
+      description: 'Esta acción eliminará permanentemente el conductor. Esta acción no se puede deshacer.',
+      itemName: nombre,
+      variant: 'destructive'
+    });
+
+    if (confirmed) {
       try {
         await deleteConductorMutation.mutateAsync(id);
+        showDeleteSuccessToast(nombre);
       } catch (error) {
-        console.error('Error deleting conductor:', error);
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar conductor',
+          'Error al eliminar'
+        );
       }
     }
   };

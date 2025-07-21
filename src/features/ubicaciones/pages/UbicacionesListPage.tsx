@@ -3,26 +3,42 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import UbicacionesTable from '../components/UbicacionesTable';
 import { useUbicaciones, useDeleteUbicacion } from '../hooks/useUbicaciones';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { UbicacionDto } from '@/api';
 
 export default function UbicacionesPage() {
   const navigate = useNavigate();
   const { data: ubicaciones = [], isLoading: loading, error } = useUbicaciones();
   const deleteUbicacionMutation = useDeleteUbicacion();
+  const { confirm } = useConfirmation();
 
   const handleEdit = (ubicacion: UbicacionDto) => {
     navigate(`/ubicaciones/editar/${ubicacion.idUbicacion}`);
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta ubicación?')) {
-      return;
-    }
+    // Buscar la ubicación para obtener su descripción
+    const ubicacion = ubicaciones.find(u => u.idUbicacion === id);
+    const ubicacionName = ubicacion?.descripcion || ubicacion?.direccion || `Ubicación #${id}`;
 
-    try {
-      await deleteUbicacionMutation.mutateAsync(id);
-    } catch (error) {
-      console.error('Error al eliminar ubicación:', error);
+    const confirmed = await confirm({
+      title: '¿Estás seguro?',
+      description: 'Esta acción eliminará permanentemente la ubicación. Esta acción no se puede deshacer.',
+      itemName: ubicacionName,
+      variant: 'destructive'
+    });
+
+    if (confirmed) {
+      try {
+        await deleteUbicacionMutation.mutateAsync(id);
+        showDeleteSuccessToast(ubicacionName);
+      } catch (error) {
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar ubicación',
+          'Error al eliminar'
+        );
+      }
     }
   };
 

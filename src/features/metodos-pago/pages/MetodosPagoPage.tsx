@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ArrowLeft, Plus, CreditCard } from 'lucide-react';
 import { useMetodosPago, useDeleteMetodoPago } from '../hooks/useMetodosPago';
 import { MetodosPagoTable } from '../components/MetodosPagoTable';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { MetodoPagoDto } from '@/api';
 
 export const MetodosPagoPage = () => {
   const navigate = useNavigate();
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const { confirm } = useConfirmation();
   
   const { data: metodosPago = [], isLoading, error, refetch } = useMetodosPago();
   const deleteMetodoPagoMutation = useDeleteMetodoPago();
@@ -26,14 +27,25 @@ export const MetodosPagoPage = () => {
   const handleDelete = async (metodoPago: MetodoPagoDto) => {
     if (!metodoPago.id) return;
     
-    const confirmMessage = `¿Estás seguro de que deseas eliminar el método de pago "${metodoPago.nombre}"?`;
-    if (window.confirm(confirmMessage)) {
+    const metodoPagoName = metodoPago.nombre || `Método de Pago #${metodoPago.id}`;
+    
+    const confirmed = await confirm({
+      title: '¿Estás seguro?',
+      description: 'Esta acción eliminará permanentemente el método de pago. Esta acción no se puede deshacer.',
+      itemName: metodoPagoName,
+      variant: 'destructive'
+    });
+
+    if (confirmed) {
       try {
-        setDeleteError(null);
-        await deleteMetodoPagoMutation.mutateAsync(metodoPago.id);
+        await deleteMetodoPagoMutation.mutateAsync(metodoPago.id!);
+        showDeleteSuccessToast(metodoPagoName);
         refetch();
       } catch (error) {
-        setDeleteError(error instanceof Error ? error.message : 'Error al eliminar método de pago');
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar método de pago',
+          'Error al eliminar'
+        );
       }
     }
   };
@@ -89,15 +101,16 @@ export const MetodosPagoPage = () => {
         </Button>
       </div>
 
-      {/* Error Alert */}
-      {deleteError && (
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{deleteError}</AlertDescription>
-        </Alert>
+      {/* Loading and Error States */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          <div className="font-medium">
+            Error al cargar métodos de pago
+          </div>
+        </div>
       )}
 
-      {/* Success Alert */}
+      {/* Success Alert - se maneja ahora con toasts */}
       {deleteMetodoPagoMutation.isSuccess && (
         <Alert className="border-green-200 bg-green-50">
           <AlertTitle className="text-green-800">¡Éxito!</AlertTitle>

@@ -6,11 +6,14 @@ import { RegistrarPagoModal } from '@/features/movimientos-caja/components/Regis
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { FacturaDto } from '@/api';
 import { FacturasStats } from '../components/FacturasStats';
 
 export const FacturasPage = () => {
   const navigate = useNavigate();
+  const { confirm } = useConfirmation();
   const { data: facturas = [], isLoading: loading, error } = useFacturas();
   const deleteFacturaMutation = useDeleteFactura();
   const [selectedFactura, setSelectedFactura] = useState<FacturaDto | null>(null);
@@ -27,11 +30,26 @@ export const FacturasPage = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta factura?')) {
+    // Buscar la factura para obtener su número
+    const factura = facturas.find(f => f.idFactura === id);
+    const facturaName = factura?.numeroFactura || `Factura #${id}`;
+
+    const confirmed = await confirm({
+      title: '¿Estás seguro?',
+      description: 'Esta acción eliminará permanentemente la factura. Esta acción no se puede deshacer.',
+      itemName: facturaName,
+      variant: 'destructive'
+    });
+
+    if (confirmed) {
       try {
         await deleteFacturaMutation.mutateAsync(id);
+        showDeleteSuccessToast(facturaName);
       } catch (error) {
-        console.error('Error al eliminar factura:', error);
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar factura',
+          'Error al eliminar'
+        );
       }
     }
   };

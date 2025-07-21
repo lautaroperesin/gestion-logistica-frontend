@@ -7,10 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import VehiculosTable from "../components/VehiculosTable";
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 import type { VehiculoDto } from "@/api";
 
 export const VehiculosPage = () => {
   const navigate = useNavigate();
+  const { confirm } = useConfirmation();
   const [searchTerm, setSearchTerm] = useState("");
   
   const { data: vehiculos = [], isLoading: loading, error, refetch } = useVehiculos();
@@ -23,11 +26,24 @@ export const VehiculosPage = () => {
   );
 
   const handleDelete = async (id: number, descripcion: string) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el vehículo "${descripcion}"?`)) {
+    const confirmed = await confirm({
+      title: "¿Confirmar eliminación?",
+      description: "Esta acción no se puede deshacer.",
+      itemName: descripcion,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "destructive"
+    });
+
+    if (confirmed) {
       try {
         await deleteVehiculoMutation.mutateAsync(id);
+        showDeleteSuccessToast(descripcion);
       } catch (error) {
-        console.error('Error deleting vehiculo:', error);
+        showErrorToast(
+          error instanceof Error ? error.message : 'Error al eliminar vehículo',
+          'Error al eliminar'
+        );
       }
     }
   };

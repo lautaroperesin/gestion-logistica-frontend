@@ -1,21 +1,34 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Alert } from '@/components/ui/alert';
+import { Pagination } from '@/components/ui/pagination';
 import { Plus, Package } from 'lucide-react';
 import { useEnvios, useDeleteEnvio } from '../hooks/useEnvios';
 import { EnviosTable } from '../components/EnviosTable';
+import { EnviosFilters, type EnviosFiltersData } from '../components/EnviosFilters';
 import { EnvioDetailsModal } from '../components/EnvioDetailsModal';
 import { CambiarEstadoModal } from '../components/CambiarEstadoModal';
+import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 import type { EnvioDto } from '@/api';
 
 export const EnviosPage = () => {
   const navigate = useNavigate();
-  const { data: envios = [], isLoading: loading, error } = useEnvios();
+  const { confirm } = useConfirmation();
+  
+  // Estados para filtros y paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [filters, setFilters] = useState<EnviosFiltersData>({});
+  
+  const { data: enviosData, isLoading: loading, error } = useEnvios(currentPage, pageSize, filters);
   const deleteEnvioMutation = useDeleteEnvio();
   
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  // Extraer datos de la respuesta paginada
+  const envios = enviosData?.items || [];
+  const totalItems = enviosData?.totalItems || 0;
+  const totalPages = enviosData?.totalPages || 1;
+  
   const [selectedEnvio, setSelectedEnvio] = useState<EnvioDto | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showChangeStatusModal, setShowChangeStatusModal] = useState(false);
@@ -41,22 +54,54 @@ export const EnviosPage = () => {
   };
 
   const handleModalSuccess = () => {
-    setDeleteSuccess(true);
-    setTimeout(() => setDeleteSuccess(false), 3000);
+    // Los modales internos ya manejan sus propios toasts
+  };
+
+  // Funciones para filtros y paginación
+  const handleFiltersChange = (newFilters: EnviosFiltersData) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Resetear a la primera página cuando se cambian los filtros
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Está seguro que desea eliminar este envío?')) {
-      return;
-    }
+    // Buscar el envío para obtener su número de seguimiento
+    const envio = envios.find(e => e.idEnvio === id);
+    const envioName = envio?.numeroSeguimiento || `Envío #${id}`;
 
-    try {
-      setDeleteError(null);
-      await deleteEnvioMutation.mutateAsync(id);
-      setDeleteSuccess(true);
-      setTimeout(() => setDeleteSuccess(false), 3000);
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : 'Error al eliminar envío');
+    // Mostrar confirmación usando el nuevo modal
+    const confirmed = await confirm({
+      title: "¿Confirmar eliminación?",
+      description: "Esta acción no se puede deshacer.",
+      itemName: envioName,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "destructive"
+    });
+
+    if (confirmed) {
+      try {
+        await deleteEnvioMutation.mutateAsync(id);
+        showDeleteSuccessToast(envioName);
+      } catch (err) {
+        showErrorToast(
+          err instanceof Error ? err.message : 'Error al eliminar envío',
+          'Error al eliminar'
+        );
+      }
     }
   };
 
@@ -80,30 +125,59 @@ export const EnviosPage = () => {
         </div>
       </div>
 
-      {/* Alerts */}
-      {deleteSuccess && (
-        <Alert className="bg-green-500/20 border-green-500/30 text-green-100">
-          <div className="font-medium">Envío eliminado exitosamente</div>
-        </Alert>
+       {/* Loading */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-40">
+          <div className="bg-white rounded-lg p-8 shadow-xl">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin">
+                  <div className=" border-blue-600 rounded-full"></div>
+                </div>
+              <p className="text-gray-600 font-medium">Cargando envíos...</p>
+            </div>
+          </div>
+        </div>
       )}
 
-      {(error || deleteError) && (
-        <Alert className="bg-red-500/20 border-red-500/30 text-red-100">
+      {/* Alerts - Mostrar solo errores de carga */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
           <div className="font-medium">
-            {error?.message || deleteError}
+            {error?.message || 'Error al cargar los envíos'}
           </div>
-        </Alert>
+        </div>
       )}
+
+      {/* Filtros */}
+      <EnviosFilters
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onClearFilters={handleClearFilters}
+      />
 
       {/* Table */}
-      <EnviosTable
-        envios={envios}
-        loading={loading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onView={handleView}
-        onChangeStatus={handleChangeStatus}
-      />
+      <div className="bg-white rounded-lg shadow">
+        <EnviosTable
+          envios={envios}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          onChangeStatus={handleChangeStatus}
+        />
+        
+        {/* Paginación */}
+        {totalItems > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
+      </div>
       
       {/* Loading overlay for delete */}
       {deleteEnvioMutation.isPending && (
