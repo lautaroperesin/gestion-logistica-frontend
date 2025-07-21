@@ -1,8 +1,12 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Users, Package, BarChart3, UserCheck, Truck, MapPin, FileText, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Package, BarChart3, UserCheck, Truck, MapPin, FileText, CreditCard, LogOut, User } from "lucide-react";
+import { useAuthStatus, useLogout } from "@/hooks/useAuth";
 
 export const MainLayout = () => {
   const location = useLocation();
+  const { user } = useAuthStatus();
+  const { mutate: logout } = useLogout();
   
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") return true;
@@ -55,13 +59,37 @@ export const MainLayout = () => {
               ))}
             </nav>
 
-            {/* Mobile/Tablet menu button */}
-            <div className="lg:hidden">
-              <button className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+            {/* User Profile & Logout */}
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
+                <User className="h-4 w-4" />
+                <span className="font-medium">{user?.nombre || 'Usuario'}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => logout()}
+                className="flex items-center gap-2 text-gray-600 hover:text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Cerrar Sesión</span>
+              </Button>
+            </div>
+
+            {/* Mobile/Tablet menu - would need a dropdown for navigation */}
+            <div className="lg:hidden flex items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <User className="h-4 w-4" />
+                <span className="font-medium hidden sm:inline">{user?.nombre || 'Usuario'}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => logout()}
+                className="flex items-center gap-1 text-gray-600 hover:text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>

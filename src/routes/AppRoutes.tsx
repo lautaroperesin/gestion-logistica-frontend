@@ -1,4 +1,8 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStatus } from '@/hooks/useAuth';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { LoginPage } from '@/pages/LoginPage';
+import { RegisterPage } from '@/pages/RegisterPage';
 import { ClientesPage } from '../features/clientes/pages/ClientesListPage';
 import { ClienteFormPage } from '../features/clientes/pages/ClienteFormPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
@@ -20,9 +24,34 @@ import { MetodosPagoPage } from '@/features/metodos-pago/pages/MetodosPagoPage';
 import { MetodoPagoFormPage } from '@/features/metodos-pago/pages/MetodoPagoFormPage';
 
 export const AppRoutes = () => {
+  const { isAuthenticated, isLoading } = useAuthStatus();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
   return (
     <Routes>
-      <Route path="/" element={<MainLayout />}>
+      {/* Public routes */}
+      <Route 
+        path="/login" 
+        element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />} 
+      />
+      <Route 
+        path="/register" 
+        element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />} 
+      />
+
+      {/* Protected routes */}
+      <Route path="/" element={
+        <ProtectedRoute>
+          <MainLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<DashboardPage />} />
         <Route path="clientes" element={<ClientesPage />} />
         <Route path="clientes/nuevo" element={<ClienteFormPage />} />
@@ -49,8 +78,10 @@ export const AppRoutes = () => {
         <Route path="metodos-pago" element={<MetodosPagoPage />} />
         <Route path="metodos-pago/nuevo" element={<MetodoPagoFormPage />} />
         <Route path="metodos-pago/editar/:id" element={<MetodoPagoFormPage />} />
-        
       </Route>
+
+      {/* Fallback for unauthenticated users */}
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
     </Routes>
   );
 };
