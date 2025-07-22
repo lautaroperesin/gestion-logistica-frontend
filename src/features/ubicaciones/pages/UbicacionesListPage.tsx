@@ -1,5 +1,7 @@
 import { Plus, MapPin } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
 import UbicacionesTable from '../components/UbicacionesTable';
 import { useUbicaciones, useDeleteUbicacion } from '../hooks/useUbicaciones';
@@ -9,9 +11,28 @@ import type { UbicacionDto } from '@/api';
 
 export default function UbicacionesPage() {
   const navigate = useNavigate();
-  const { data: ubicaciones = [], isLoading: loading, error } = useUbicaciones();
-  const deleteUbicacionMutation = useDeleteUbicacion();
   const { confirm } = useConfirmation();
+  
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
+  const { data: ubicacionesResult, isLoading: loading, error } = useUbicaciones(currentPage, pageSize);
+  const deleteUbicacionMutation = useDeleteUbicacion();
+  
+  // Extraer datos de la respuesta paginada
+  const ubicaciones = ubicacionesResult?.items || [];
+  const totalItems = ubicacionesResult?.totalItems || 0;
+  const totalPages = ubicacionesResult?.totalPages || 1;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
 
   const handleEdit = (ubicacion: UbicacionDto) => {
     navigate(`/ubicaciones/editar/${ubicacion.idUbicacion}`);
@@ -89,12 +110,26 @@ export default function UbicacionesPage() {
       </div>
 
       {/* Table */}
-      <UbicacionesTable
-        ubicaciones={ubicaciones}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        loading={loading}
-      />
+      <div className="bg-white rounded-lg shadow">
+        <UbicacionesTable
+          ubicaciones={ubicaciones}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          loading={loading}
+        />
+        
+        {/* Paginación */}
+        {totalItems > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -1,14 +1,25 @@
 import { MovimientosCajaApi } from '@/api';
 import { apiConfig } from '@/api/config';
-import type { MovimientoCajaDto, CreateMovimientoCajaDto } from '@/api';
+import type { MovimientoCajaDto, CreateMovimientoCajaDto, MovimientoCajaDtoPagedResult } from '@/api';
 
 const movimientosApi = new MovimientosCajaApi(apiConfig);
 
 export const movimientosCajaService = {
-  // Obtener todos los movimientos
-  getAll: async (): Promise<MovimientoCajaDto[]> => {
+  // Obtener todos los movimientos con paginación
+  getAll: async (pageNumber: number = 1, pageSize: number = 10): Promise<MovimientoCajaDtoPagedResult> => {
     try {
-      const response = await movimientosApi.apiMovimientosCajaGet({ pageNumber: 1, pageSize: 10 });
+      const response = await movimientosApi.apiMovimientosCajaGet({ pageNumber, pageSize });
+      return response;
+    } catch (error) {
+      console.error('Error al obtener movimientos de caja:', error);
+      throw new Error('Error al cargar los movimientos de caja');
+    }
+  },
+
+  // Obtener todos los movimientos sin paginación (para compatibilidad)
+  getAllUnpaginated: async (): Promise<MovimientoCajaDto[]> => {
+    try {
+      const response = await movimientosApi.apiMovimientosCajaGet({ pageNumber: 1, pageSize: 1000 });
       return response.items || [];
     } catch (error) {
       console.error('Error al obtener movimientos de caja:', error);

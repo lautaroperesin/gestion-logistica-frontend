@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import { ClienteCard } from "../components/ClienteCard";
 import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
@@ -15,7 +16,7 @@ export const ClientesPage = () => {
   const { confirm } = useConfirmation();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(12);
   
   // Usar React Query hooks
   const { 
@@ -28,7 +29,17 @@ export const ClientesPage = () => {
   const deleteClienteMutation = useDeleteCliente();
 
   const clientes = clientesResult?.items || [];
-  const totalCount = clientesResult?.totalItems || 0;
+  const totalItems = clientesResult?.totalItems || 0;
+  const totalPages = clientesResult?.totalPages || 1;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
 
   const filteredClientes = clientes.filter(cliente => 
     cliente.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -141,7 +152,7 @@ export const ClientesPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Clientes</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalItems}</p>
               </div>
             </div>
           </CardContent>
@@ -196,6 +207,20 @@ export const ClientesPage = () => {
               onDelete={() => handleDelete(cliente.idCliente!, cliente.nombre || 'Cliente sin nombre')}
             />
           ))}
+        </div>
+      )}
+
+      {/* Paginación */}
+      {totalItems > 0 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       )}
     </div>

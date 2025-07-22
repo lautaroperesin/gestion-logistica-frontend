@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
+import { Pagination } from '../../../components/ui/pagination';
 import { Settings } from 'lucide-react';
-import { useMovimientos, useDeleteMovimiento, useMovimientosStats } from '../hooks/useMovimientosCaja';
+import { useMovimientos, useAllMovimientos, useDeleteMovimiento, useMovimientosStats } from '../hooks/useMovimientosCaja';
 import { MovimientosCajaTable } from '../components/MovimientosCajaTable';
 import { MovimientosCajaStats } from '../components/MovimientosCajaStats';
 import { MovimientoDetailsModal } from '../components/MovimientoDetailsModal';
@@ -17,16 +18,35 @@ export const MovimientosCajaPage = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const { confirm } = useConfirmation();
 
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const { 
     data: movimientosResult, 
     isLoading, 
     error, 
     refetch 
-  } = useMovimientos();
+  } = useMovimientos(currentPage, pageSize);
 
+  const { data: allMovimientos = [] } = useAllMovimientos(); // Para estadísticas
   const deleteMovimiento = useDeleteMovimiento();
-  const movimientos = movimientosResult || [];
-  const stats = useMovimientosStats(movimientos);
+  
+  // Extraer datos de la respuesta paginada
+  const movimientos = movimientosResult?.items || [];
+  const totalItems = movimientosResult?.totalItems || 0;
+  const totalPages = movimientosResult?.totalPages || 1;
+  
+  const stats = useMovimientosStats(allMovimientos);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
 
   const handleView = (movimiento: MovimientoCajaDto) => {
     setSelectedMovimiento(movimiento);
@@ -98,12 +118,26 @@ export const MovimientosCajaPage = () => {
       <MovimientosCajaStats stats={stats} />
 
       {/* Tabla de movimientos */}
-      <MovimientosCajaTable
-        movimientos={movimientos}
-        loading={isLoading}
-        onView={handleView}
-        onDelete={handleDelete}
-      />
+      <div className="bg-white rounded-lg shadow">
+        <MovimientosCajaTable
+          movimientos={movimientos}
+          loading={isLoading}
+          onView={handleView}
+          onDelete={handleDelete}
+        />
+        
+        {/* Paginación */}
+        {totalItems > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
+      </div>
 
       {/* Modal de detalles */}
       {selectedMovimiento && (

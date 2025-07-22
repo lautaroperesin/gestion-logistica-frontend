@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Pagination } from "@/components/ui/pagination";
 import { ConductorCard } from "../components/ConductorCard";
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
@@ -16,11 +17,25 @@ export const ConductoresPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { confirm } = useConfirmation();
   
-  const { data: result, isLoading: loading, error, refetch } = useConductores();
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
+  const { data: result, isLoading: loading, error, refetch } = useConductores(currentPage, pageSize);
   const deleteConductorMutation = useDeleteConductor();
 
   const conductores = result?.items || [];
-  const totalCount = result?.totalItems || 0;
+  const totalItems = result?.totalItems || 0;
+  const totalPages = result?.totalPages || 1;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
 
   const filteredConductores = conductores.filter((conductor: ConductorDto) => 
     conductor.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,7 +143,7 @@ export const ConductoresPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Conductores</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalItems}</p>
               </div>
             </div>
           </CardContent>
@@ -183,6 +198,20 @@ export const ConductoresPage = () => {
               onDelete={() => handleDelete(conductor.idConductor!, conductor.nombre || 'Conductor sin nombre')}
             />
           ))}
+        </div>
+      )}
+
+      {/* Paginación */}
+      {totalItems > 0 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       )}
     </div>

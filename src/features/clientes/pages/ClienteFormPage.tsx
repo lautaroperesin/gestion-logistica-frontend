@@ -158,7 +158,10 @@ export const ClienteFormPage = () => {
       </div>
 
       {/* Form */}
-      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">\n        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">\n          <CardTitle className="flex items-center gap-2">\n            <User className="h-5 w-5" />
+      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
             Información del Cliente
           </CardTitle>
         </CardHeader>

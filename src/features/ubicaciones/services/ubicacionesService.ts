@@ -1,12 +1,23 @@
 import { UbicacionesApi } from '@/api';
 import { apiConfig } from '@/api/config';
-import type { UbicacionDto, CreateUbicacionDto, UpdateUbicacionDto, ProvinciaDto, LocalidadDto, PaisDto } from '@/api';
+import type { UbicacionDto, CreateUbicacionDto, UpdateUbicacionDto, UbicacionDtoPagedResult, ProvinciaDto, LocalidadDto, PaisDto } from '@/api';
 
 const api = new UbicacionesApi(apiConfig);
 
 export const ubicacionesService = {
-  // Obtener todas las ubicaciones
-  getAll: async (): Promise<UbicacionDto[]> => {
+  // Obtener todas las ubicaciones con paginación
+  getAll: async (pageNumber: number = 1, pageSize: number = 10): Promise<UbicacionDtoPagedResult> => {
+    try {
+      const response = await api.apiUbicacionesGet({ pageNumber, pageSize });
+      return response;
+    } catch (error) {
+      console.error('Error al obtener ubicaciones:', error);
+      throw new Error('Error al cargar las ubicaciones');
+    }
+  },
+
+  // Obtener todas las ubicaciones sin paginación (para compatibilidad)
+  getAllUnpaginated: async (): Promise<UbicacionDto[]> => {
     try {
       const response = await api.apiUbicacionesGet({ pageNumber: 1, pageSize: 1000 });
       return response.items || [];

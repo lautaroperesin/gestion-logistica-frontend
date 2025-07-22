@@ -81,7 +81,7 @@ export const facturasService = {
   },
 
   // Obtener facturas por estado
-  getByEstado: async (estado: number): Promise<FacturaDto[]> => {
+/*   getByEstado: async (estado: number): Promise<FacturaDto[]> => {
     try {
       const allFacturas = await facturasService.getAllUnpaginated();
       return allFacturas.filter(factura => factura.estado === estado);
@@ -89,10 +89,10 @@ export const facturasService = {
       console.error('Error al obtener facturas por estado:', error);
       throw new Error('Error al cargar las facturas por estado');
     }
-  },
+  }, */
 
   // Obtener facturas por cliente
-  getByCliente: async (clienteId: number): Promise<FacturaDto[]> => {
+/*   getByCliente: async (clienteId: number): Promise<FacturaDto[]> => {
     try {
       const allFacturas = await facturasService.getAllUnpaginated();
       return allFacturas.filter(factura => factura.cliente?.idCliente === clienteId);
@@ -100,7 +100,7 @@ export const facturasService = {
       console.error('Error al obtener facturas por cliente:', error);
       throw new Error('Error al cargar las facturas del cliente');
     }
-  }
+  } */
 };
 
 // Funciones de conveniencia

@@ -9,17 +9,26 @@ import type {
 export const movimientosKeys = {
   all: ['movimientos'] as const,
   lists: () => [...movimientosKeys.all, 'list'] as const,
-  list: (filters: string) => [...movimientosKeys.lists(), filters] as const,
+  list: (page: number, pageSize: number) => [...movimientosKeys.lists(), page, pageSize] as const,
   details: () => [...movimientosKeys.all, 'detail'] as const,
   detail: (id: number) => [...movimientosKeys.details(), id] as const,
   byFactura: (facturaId: number) => [...movimientosKeys.all, 'factura', facturaId] as const,
 };
 
-// Hook para obtener todos los movimientos
-export const useMovimientos = (pageNumber?: number, pageSize?: number) => {
+// Hook para obtener movimientos con paginación
+export const useMovimientos = (currentPage: number = 1, pageSize: number = 10) => {
   return useQuery({
-    queryKey: movimientosKeys.list(`page-${pageNumber}-size-${pageSize}`),
-    queryFn: () => movimientosCajaService.getAll(),
+    queryKey: movimientosKeys.list(currentPage, pageSize),
+    queryFn: () => movimientosCajaService.getAll(currentPage, pageSize),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+};
+
+// Hook para obtener todos los movimientos sin paginación (para compatibilidad)
+export const useAllMovimientos = () => {
+  return useQuery({
+    queryKey: movimientosKeys.lists(),
+    queryFn: () => movimientosCajaService.getAllUnpaginated(),
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 };

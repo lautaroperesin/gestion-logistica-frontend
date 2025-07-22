@@ -6,6 +6,7 @@ import type { CreateUbicacionDto, UpdateUbicacionDto } from '@/api';
 export const ubicacionesKeys = {
   all: ['ubicaciones'] as const,
   lists: () => [...ubicacionesKeys.all, 'list'] as const,
+  list: (page: number, pageSize: number) => [...ubicacionesKeys.lists(), page, pageSize] as const,
   details: () => [...ubicacionesKeys.all, 'detail'] as const,
   detail: (id: number) => [...ubicacionesKeys.details(), id] as const,
   paises: () => [...ubicacionesKeys.all, 'paises'] as const,
@@ -13,12 +14,21 @@ export const ubicacionesKeys = {
   localidades: (provinciaId: number) => [...ubicacionesKeys.all, 'localidades', provinciaId] as const,
 };
 
-// Hook para obtener todas las ubicaciones
-export function useUbicaciones() {
+// Hook para obtener ubicaciones con paginación
+export function useUbicaciones(currentPage: number = 1, pageSize: number = 10) {
+  return useQuery({
+    queryKey: ubicacionesKeys.list(currentPage, pageSize),
+    queryFn: () => ubicacionesService.getAll(currentPage, pageSize),
+    staleTime: 10 * 60 * 1000, // 10 minutos (datos geográficos más estáticos)
+  });
+}
+
+// Hook para obtener todas las ubicaciones sin paginación (para compatibilidad)
+export function useAllUbicaciones() {
   return useQuery({
     queryKey: ubicacionesKeys.lists(),
-    queryFn: () => ubicacionesService.getAll(),
-    staleTime: 10 * 60 * 1000, // 10 minutos (datos geográficos más estáticos)
+    queryFn: () => ubicacionesService.getAllUnpaginated(),
+    staleTime: 10 * 60 * 1000, // 10 minutos
   });
 }
 
@@ -107,7 +117,7 @@ export function useLocalidadesByProvincia(provinciaId: number | undefined) {
 
 // Hook para estadísticas de ubicaciones
 export const useUbicacionesStats = () => {
-  const { data: ubicaciones = [] } = useUbicaciones();
+  const { data: ubicaciones = [] } = useAllUbicaciones();
   
   return {
     totalUbicaciones: ubicaciones.length,
