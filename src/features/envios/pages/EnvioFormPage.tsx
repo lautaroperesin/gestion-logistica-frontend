@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert } from '@/components/ui/alert';
 import { DatePicker } from '@/components/ui/date-picker';
 import { ArrowLeft, Save, Package } from 'lucide-react';
 import { useEnvio, useCreateEnvio, useUpdateEnvio } from '../hooks/useEnvios';
@@ -14,6 +13,7 @@ import { ClienteSelector } from '@/features/clientes/components/ClienteSelector'
 import { ConductorSelector } from '@/features/conductores/components/ConductorSelector';
 import { VehiculoSelector } from '@/features/vehiculos/components/VehiculoSelector';
 import { TipoCargaSelector } from '@/features/tiposCarga/components/TipoCargaSelector';
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { CreateEnvioDto, UpdateEnvioDto } from '@/api';
 import { Input } from '@/components/ui/input';
 
@@ -76,8 +76,6 @@ export const EnvioFormPage: React.FC = () => {
   const { data: envio, isLoading: loadingEnvio } = useEnvio(id ? parseInt(id) : 0);
   const createEnvioMutation = useCreateEnvio();
   const updateEnvioMutation = useUpdateEnvio();
-  
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
@@ -129,8 +127,6 @@ export const EnvioFormPage: React.FC = () => {
 
   const onSubmit = async (data: EnvioFormData) => {
     try {
-      setSubmitError(null);
-
       if (isEditing && id) {
         const envioData: UpdateEnvioDto = {
           idEnvio: parseInt(id),
@@ -138,19 +134,31 @@ export const EnvioFormPage: React.FC = () => {
           fechaSalida: data.fechaSalida
         };
         await updateEnvioMutation.mutateAsync({ id: parseInt(id), data: envioData });
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(`Envío #${data.numeroSeguimiento}`);
       } else {
         const envioData: CreateEnvioDto = {
           ...data,
           fechaSalida: data.fechaSalida
         };
         await createEnvioMutation.mutateAsync(envioData);
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(`Envío #${data.numeroSeguimiento}`);
       }
 
       setTimeout(() => {
         navigate('/envios');
       }, 1500);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Error inesperado');
+      const errorMessage = err instanceof Error ? err.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEditing ? 'Error al actualizar envío' : 'Error al crear envío'
+      );
     }
   };
 
@@ -203,19 +211,6 @@ export const EnvioFormPage: React.FC = () => {
           </CardHeader>
 
         <CardContent className="p-4">
-          {submitError && (
-            <Alert className="mb-8 bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-800 shadow-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <div className="font-medium">
-                  {submitError}
-                </div>
-              </div>
-            </Alert>
-          )}
-
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Información Básica */}
             <div className="rounded-xl p-6 border border-gray-300 shadow-sm">

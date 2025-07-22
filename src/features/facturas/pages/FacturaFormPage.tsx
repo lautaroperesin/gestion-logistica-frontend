@@ -10,6 +10,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useCreateFactura, useUpdateFactura, useFactura } from '../hooks/useFacturas';
 import { useClientes } from '@/features/clientes/hooks/useClientes';
 import { useEnvios } from '@/features/envios/hooks/useEnvios';
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { CreateFacturaDto, UpdateFacturaDto } from '@/api';
 
 // Schema de validación
@@ -38,9 +39,10 @@ export const FacturaFormPage = () => {
   const createFacturaMutation = useCreateFactura();
   const updateFacturaMutation = useUpdateFactura();
   const { data: clientesResult, isLoading: clientesLoading } = useClientes(1, 1000);
-  const { data: envios = [], isLoading: enviosLoading } = useEnvios();
+  const { data: enviosResult, isLoading: enviosLoading } = useEnvios();
   
   const clientes = clientesResult?.items || [];
+  const envios = enviosResult?.items || [];
 
   // Configuración del formulario
   const form = useForm<FacturaFormData>({
@@ -63,8 +65,8 @@ export const FacturaFormPage = () => {
 
   // Cargar datos del envío seleccionado
   useEffect(() => {
-    if (watchedValues.idEnvio > 0) {
-      const envioSeleccionado = envios.find(e => e.idEnvio === watchedValues.idEnvio);
+    if (watchedValues.idEnvio > 0 && envios.length > 0) {
+      const envioSeleccionado = envios.find((e: any) => e.idEnvio === watchedValues.idEnvio);
       if (envioSeleccionado && envioSeleccionado.cliente?.idCliente) {
         setValue('idCliente', envioSeleccionado.cliente.idCliente);
       }
@@ -96,7 +98,6 @@ export const FacturaFormPage = () => {
 
   const onSubmit = async (data: FacturaFormData) => {
     try {
-
       if (isEdit && facturaId) {
         const updateData: UpdateFacturaDto = {
           idFactura: facturaId,
@@ -106,7 +107,13 @@ export const FacturaFormPage = () => {
           estado: data.estado as any,
         };
         await updateFacturaMutation.mutateAsync({ id: facturaId, data: updateData });
-        navigate('/facturas');
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(`Factura #${data.numeroFactura}`);
+        
+        setTimeout(() => {
+          navigate('/facturas');
+        }, 1500);
       } else {
         const createData: CreateFacturaDto = {
           ...data,
@@ -115,10 +122,22 @@ export const FacturaFormPage = () => {
           estado: data.estado as any,
         };
         await createFacturaMutation.mutateAsync(createData);
-        navigate('/facturas');
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(`Factura #${data.numeroFactura}`);
+        
+        setTimeout(() => {
+          navigate('/facturas');
+        }, 1500);
       }
     } catch (error) {
-      console.error('Error al procesar factura:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEdit ? 'Error al actualizar factura' : 'Error al crear factura'
+      );
     }
   };
 
@@ -195,7 +214,7 @@ export const FacturaFormPage = () => {
                   {...register('idEnvio', { valueAsNumber: true })}
                 >
                   <option value={0}>Seleccionar envío...</option>
-                  {envios.map((envio) => (
+                  {envios.map((envio: any) => (
                     <option key={envio.idEnvio} value={envio.idEnvio}>
                       {envio.numeroSeguimiento} - {envio.cliente?.nombre}
                     </option>

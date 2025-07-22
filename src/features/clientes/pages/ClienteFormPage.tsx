@@ -6,10 +6,10 @@ import { z } from "zod";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useCliente, useCreateCliente, useUpdateCliente } from "../hooks/useClientes";
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from "@/lib/toast-utils";
 import type { CreateClienteDto, UpdateClienteDto } from "@/api";
 
 // Esquema de validación con Zod
@@ -43,8 +43,7 @@ export const ClienteFormPage = () => {
     register,
     handleSubmit,
     formState: { errors, isValid, isSubmitting },
-    reset,
-    setValue
+    reset
   } = useForm<ClienteFormData>({
     resolver: zodResolver(clienteSchema),
     defaultValues: {
@@ -79,6 +78,9 @@ export const ClienteFormPage = () => {
           id: parseInt(id),
           data: updateData
         });
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(data.nombre);
       } else {
         const createData: CreateClienteDto = {
           nombre: data.nombre.trim(),
@@ -87,10 +89,22 @@ export const ClienteFormPage = () => {
         };
         
         await createClienteMutation.mutateAsync(createData);
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(data.nombre);
       }
-      navigate("/clientes");
+      
+      setTimeout(() => {
+        navigate("/clientes");
+      }, 1500);
     } catch (error) {
-      console.error('Error al guardar cliente:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEditing ? 'Error al actualizar cliente' : 'Error al crear cliente'
+      );
     }
   };
 
@@ -143,31 +157,8 @@ export const ClienteFormPage = () => {
         </div>
       </div>
 
-      {/* Error Alert de mutaciones */}
-      {(createClienteMutation.error || updateClienteMutation.error) && (
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {createClienteMutation.error?.message || updateClienteMutation.error?.message}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Success Alert */}
-      {(createClienteMutation.isSuccess || updateClienteMutation.isSuccess) && (
-        <Alert className="border-green-200 bg-green-50">
-          <AlertTitle className="text-green-800">¡Éxito!</AlertTitle>
-          <AlertDescription className="text-green-700">
-            Cliente {isEditing ? 'actualizado' : 'creado'} correctamente.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Form */}
-      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">\n        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">\n          <CardTitle className="flex items-center gap-2">\n            <User className="h-5 w-5" />
             Información del Cliente
           </CardTitle>
         </CardHeader>

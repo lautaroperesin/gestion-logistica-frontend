@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,8 +6,8 @@ import { z } from "zod";
 import { ArrowLeft, Save, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTipoCarga, useCreateTipoCarga, useUpdateTipoCarga } from "../hooks/useTiposCarga";
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 
 // Esquema de validación con Zod
 const tipoCargaSchema = z.object({
@@ -25,8 +25,6 @@ export const TipoCargaFormPage = () => {
   const createTipoCargaMutation = useCreateTipoCarga();
   const updateTipoCargaMutation = useUpdateTipoCarga();
   
-  const [error, setError] = useState<string | null>(null);
-
   const form = useForm<TipoCargaFormData>({
     resolver: zodResolver(tipoCargaSchema),
     defaultValues: {
@@ -48,21 +46,34 @@ export const TipoCargaFormPage = () => {
   }, [tipoCarga, isEditing, reset]);
 
   const onSubmit = async (data: TipoCargaFormData) => {
-    setError(null);
-
     try {
       if (isEditing && id) {
         await updateTipoCargaMutation.mutateAsync({
           id: parseInt(id),
           data: { nombre: data.nombre }
         });
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(data.nombre);
       } else {
         await createTipoCargaMutation.mutateAsync({ nombre: data.nombre });
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(data.nombre);
       }
-      navigate("/tipos-carga");
+      
+      setTimeout(() => {
+        navigate("/tipos-carga");
+      }, 1500);
     } catch (err) {
-      setError(isEditing ? "Error al actualizar el tipo de carga" : "Error al crear el tipo de carga");
-    }
+      const errorMessage = err instanceof Error ? err.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEditing ? 'Error al actualizar tipo de carga' : 'Error al crear tipo de carga'
+      );
+      }
   };
 
   if (loadingData) {
@@ -109,14 +120,6 @@ export const TipoCargaFormPage = () => {
           </p>
         </div>
       </div>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive" className="shadow-md">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {/* Form */}
       <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">

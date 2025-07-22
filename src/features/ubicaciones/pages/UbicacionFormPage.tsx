@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import UbicacionSelector from '../components/UbicacionSelector';
 import { useUbicacion, useCreateUbicacion, useUpdateUbicacion } from '../hooks/useUbicaciones';
 import type { CreateUbicacionDto, UpdateUbicacionDto, PaisDto, ProvinciaDto, LocalidadDto } from '@/api';
@@ -82,6 +82,9 @@ export default function UbicacionFormPage() {
           id: parseInt(id),
           data: updateData
         });
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(data.direccion);
       } else {
         const createData: CreateUbicacionDto = {
           direccion: data.direccion.trim(),
@@ -90,10 +93,22 @@ export default function UbicacionFormPage() {
         };
         
         await createUbicacionMutation.mutateAsync(createData);
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(data.direccion);
       }
-      navigate('/ubicaciones');
+      
+      setTimeout(() => {
+        navigate('/ubicaciones');
+      }, 1500);
     } catch (error) {
-      console.error('Error al guardar ubicación:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEditing ? 'Error al actualizar ubicación' : 'Error al crear ubicación'
+      );
     }
   };
 
@@ -161,26 +176,6 @@ export default function UbicacionFormPage() {
         </div>
       </div>
 
-      {/* Error Alert de mutaciones */}
-      {(createUbicacionMutation.error || updateUbicacionMutation.error) && (
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {createUbicacionMutation.error?.message || updateUbicacionMutation.error?.message}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Success Alert */}
-      {(createUbicacionMutation.isSuccess || updateUbicacionMutation.isSuccess) && (
-        <Alert className="border-green-200 bg-green-50">
-          <AlertTitle className="text-green-800">¡Éxito!</AlertTitle>
-          <AlertDescription className="text-green-700">
-            Ubicación {isEditing ? 'actualizada' : 'creada'} correctamente.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Form */}
       <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
         <CardHeader className="text-black rounded-t-lg">
@@ -211,14 +206,6 @@ export default function UbicacionFormPage() {
             )}
             {errors.localidadId && (
               <p className="text-red-500 text-sm">{errors.localidadId.message}</p>
-            )}
-
-            {isEditing && (
-              <Alert className="border-amber-200 bg-amber-50">
-                <AlertDescription className="text-amber-800">
-                  ⚠️ En modo edición, solo puede cambiar la dirección y la descripción.
-                </AlertDescription>
-              </Alert>
             )}
 
             <div className="grid gap-6 md:grid-cols-1">

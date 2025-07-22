@@ -6,11 +6,11 @@ import { z } from "zod";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateConductor, useUpdateConductor, useConductor } from "../hooks/useConductores";
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from "@/lib/toast-utils";
 import type { CreateConductorDto, UpdateConductorDto } from "@/api";
 
 // Esquema de validación con Zod
@@ -106,6 +106,9 @@ export const ConductorFormPage = () => {
           id: parseInt(id), 
           data: updateData
         });
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(data.nombre);
       } else {
         const createData: CreateConductorDto = {
           nombre: data.nombre.trim(),
@@ -117,10 +120,22 @@ export const ConductorFormPage = () => {
         };
         
         await createConductorMutation.mutateAsync(createData);
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(data.nombre);
       }
-      navigate("/conductores");
+      
+      setTimeout(() => {
+        navigate("/conductores");
+      }, 1500);
     } catch (error) {
-      console.error('Error al guardar conductor:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEditing ? 'Error al actualizar conductor' : 'Error al crear conductor'
+      );
     }
   };
 
@@ -202,26 +217,6 @@ export const ConductorFormPage = () => {
           </p>
         </div>
       </div>
-
-      {/* Error Alert de mutaciones */}
-      {(createConductorMutation.error || updateConductorMutation.error) && (
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {createConductorMutation.error?.message || updateConductorMutation.error?.message}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Success Alert */}
-      {(createConductorMutation.isSuccess || updateConductorMutation.isSuccess) && (
-        <Alert className="border-green-200 bg-green-50">
-          <AlertTitle className="text-green-800">¡Éxito!</AlertTitle>
-          <AlertDescription className="text-green-700">
-            Conductor {isEditing ? 'actualizado' : 'creado'} correctamente.
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Form */}
       <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">

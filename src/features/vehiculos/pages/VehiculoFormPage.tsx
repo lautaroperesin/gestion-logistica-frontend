@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,8 +6,8 @@ import { z } from "zod";
 import { ArrowLeft, Save, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useVehiculo, useCreateVehiculo, useUpdateVehiculo } from "../hooks/useVehiculos";
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from "@/lib/toast-utils";
 import type { CreateVehiculoDto, UpdateVehiculoDto, EstadoVehiculo } from "@/api";
 
 // Esquema de validación con Zod
@@ -39,8 +39,6 @@ export const VehiculoFormPage = () => {
   const { data: vehiculo, isLoading: loadingData } = useVehiculo(id ? parseInt(id) : 0);
   const createVehiculoMutation = useCreateVehiculo();
   const updateVehiculoMutation = useUpdateVehiculo();
-  
-  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<VehiculoFormData>({
     resolver: zodResolver(vehiculoSchema),
@@ -79,8 +77,6 @@ export const VehiculoFormPage = () => {
   }, [vehiculo, isEditing, reset]);
 
   const onSubmit = async (data: VehiculoFormData) => {
-    setError(null);
-
     try {
       if (isEditing && id) {
         const updateData: UpdateVehiculoDto = {
@@ -98,7 +94,13 @@ export const VehiculoFormPage = () => {
           id: parseInt(id),
           data: updateData
         });
-        navigate("/vehiculos");
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(`${data.marca} ${data.modelo} - ${data.patente}`);
+        
+        setTimeout(() => {
+          navigate("/vehiculos");
+        }, 1500);
       } else {
         const createData: CreateVehiculoDto = {
           marca: data.marca,
@@ -111,10 +113,22 @@ export const VehiculoFormPage = () => {
         };
         
         await createVehiculoMutation.mutateAsync(createData);
-        navigate("/vehiculos");
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(`${data.marca} ${data.modelo} - ${data.patente}`);
+        
+        setTimeout(() => {
+          navigate("/vehiculos");
+        }, 1500);
       }
     } catch (err) {
-      setError(isEditing ? "Error al actualizar el vehículo" : "Error al crear el vehículo");
+      const errorMessage = err instanceof Error ? err.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEditing ? 'Error al actualizar vehículo' : 'Error al crear vehículo'
+      );
     }
   };
 
@@ -166,14 +180,6 @@ export const VehiculoFormPage = () => {
           </p>
         </div>
       </div>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive" className="shadow-md">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {/* Form */}
       <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">

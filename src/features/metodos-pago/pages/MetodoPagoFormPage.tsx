@@ -6,8 +6,8 @@ import { z } from "zod";
 import { ArrowLeft, Save, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
+import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import { Input } from "@/components/ui/input";
 import { useCreateMetodoPago, useUpdateMetodoPago, useMetodoPago } from "../hooks/useMetodosPago";
 import type { MetodoPagoDto } from "@/api";
@@ -66,16 +66,31 @@ export const MetodoPagoFormPage = () => {
           id: parseInt(id), 
           data: updateData
         });
+        
+        // Toast de actualización exitosa
+        showUpdateSuccessToast(data.nombre);
       } else {
         const createData: MetodoPagoDto = {
           nombre: data.nombre.trim(),
         };
         
         await createMetodoPagoMutation.mutateAsync(createData);
+        
+        // Toast de creación exitosa
+        showCreateSuccessToast(data.nombre);
       }
-      navigate("/metodos-pago");
+      
+      setTimeout(() => {
+        navigate("/metodos-pago");
+      }, 1500);
     } catch (error) {
-      console.error('Error al guardar método de pago:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
+      
+      // Toast de error
+      showErrorToast(
+        errorMessage,
+        isEditing ? 'Error al actualizar método de pago' : 'Error al crear método de pago'
+      );
     }
   };
 
@@ -127,26 +142,6 @@ export const MetodoPagoFormPage = () => {
           </p>
         </div>
       </div>
-
-      {/* Error Alert de mutaciones */}
-      {(createMetodoPagoMutation.error || updateMetodoPagoMutation.error) && (
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {createMetodoPagoMutation.error?.message || updateMetodoPagoMutation.error?.message}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Success Alert */}
-      {(createMetodoPagoMutation.isSuccess || updateMetodoPagoMutation.isSuccess) && (
-        <Alert className="border-green-200 bg-green-50">
-          <AlertTitle className="text-green-800">¡Éxito!</AlertTitle>
-          <AlertDescription className="text-green-700">
-            Método de pago {isEditing ? 'actualizado' : 'creado'} correctamente.
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Form */}
       <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
