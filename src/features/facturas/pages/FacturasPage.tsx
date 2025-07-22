@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FacturasTable } from '../components/FacturasTable';
-import { useFacturas, useDeleteFactura } from '../hooks/useFacturas';
+import { FacturaDetailsModal } from '../components/FacturaDetailsModal';
+import { useFacturas, useAllFacturas, useDeleteFactura } from '../hooks/useFacturas';
 import { RegistrarPagoModal } from '@/features/movimientos-caja/components/RegistrarPagoModal';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
 import { AlertTriangle } from 'lucide-react';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
@@ -14,15 +15,37 @@ import { FacturasStats } from '../components/FacturasStats';
 export const FacturasPage = () => {
   const navigate = useNavigate();
   const { confirm } = useConfirmation();
-  const { data: facturas = [], isLoading: loading, error } = useFacturas();
+  
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
+  const { data: facturasData, isLoading: loading, error } = useFacturas(currentPage, pageSize);
+  const { data: allFacturas = [] } = useAllFacturas(); // Para estadísticas
   const deleteFacturaMutation = useDeleteFactura();
+  
+  // Extraer datos de la respuesta paginada
+  const facturas = facturasData?.items || [];
+  const totalItems = facturasData?.totalItems || 0;
+  const totalPages = facturasData?.totalPages || 1;
+  
   const [selectedFactura, setSelectedFactura] = useState<FacturaDto | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showPagoModal, setShowPagoModal] = useState(false);
   const [facturaParaPago, setFacturaParaPago] = useState<FacturaDto | null>(null);
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
+
   const handleView = (factura: FacturaDto) => {
     setSelectedFactura(factura);
-    // Aquí podrías abrir un modal de detalles similar al de envíos
+    setShowDetailsModal(true);
   };
 
   const handleEdit = (factura: FacturaDto) => {
@@ -97,87 +120,37 @@ export const FacturasPage = () => {
       </div>
 
       {/* Estadísticas */}
-      {!loading && facturas && <FacturasStats facturas={facturas} />}
+      {!loading && allFacturas && <FacturasStats facturas={allFacturas} />}
 
       {/* Tabla de facturas */}
-      <FacturasTable
-        facturas={facturas || []}
-        loading={loading}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onAdd={handleAdd}
-        onPagar={handlePagar}
-      />
+        <FacturasTable
+          facturas={facturas || []}
+          loading={loading}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onAdd={handleAdd}
+          onPagar={handlePagar}
+        />
+        
+        {/* Paginación */}
+        {totalItems > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
 
       {/* Modal de detalles */}
-      {selectedFactura && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="p-6 max-w-2xl max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">
-              Detalles de Factura N° {selectedFactura.numeroFactura}
-            </h3>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Cliente</label>
-                  <p className="font-medium">{selectedFactura.cliente?.nombre || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Envío</label>
-                  <p className="font-medium">{selectedFactura.envio?.numeroSeguimiento || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Fecha Emisión</label>
-                  <p className="font-medium">
-                    {selectedFactura.fechaEmision 
-                      ? new Date(selectedFactura.fechaEmision).toLocaleDateString('es-AR')
-                      : '-'
-                    }
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Fecha Vencimiento</label>
-                  <p className="font-medium">
-                    {selectedFactura.fechaVencimiento 
-                      ? new Date(selectedFactura.fechaVencimiento).toLocaleDateString('es-AR')
-                      : '-'
-                    }
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Subtotal</label>
-                  <p className="font-medium">
-                    ${selectedFactura.subtotal?.toLocaleString('es-AR', { minimumFractionDigits: 2 }) || '0.00'}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">IVA</label>
-                  <p className="font-medium">
-                    ${selectedFactura.iva?.toLocaleString('es-AR', { minimumFractionDigits: 2 }) || '0.00'}
-                  </p>
-                </div>
-                <div className="col-span-2">
-                  <label className="text-sm font-medium text-gray-600">Total</label>
-                  <p className="text-2xl font-bold text-green-600">
-                    ${selectedFactura.total?.toLocaleString('es-AR', { minimumFractionDigits: 2 }) || '0.00'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2 mt-6">
-              <Button onClick={() => setSelectedFactura(null)} variant="outline">
-                Cerrar
-              </Button>
-              <Button onClick={() => handleEdit(selectedFactura)}>
-                Editar Factura
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      <FacturaDetailsModal
+        factura={selectedFactura}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+      />
 
       {/* Modal de Registro de Pago */}
       {facturaParaPago && (

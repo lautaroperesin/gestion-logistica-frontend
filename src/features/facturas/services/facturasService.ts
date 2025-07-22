@@ -1,12 +1,23 @@
 import { FacturasApi } from '@/api';
 import { apiConfig } from '@/api/config';
-import type { FacturaDto, CreateFacturaDto, UpdateFacturaDto } from '@/api';
+import type { FacturaDto, CreateFacturaDto, UpdateFacturaDto, FacturaDtoPagedResult } from '@/api';
 
 const api = new FacturasApi(apiConfig);
 
 export const facturasService = {
-  // Obtener todas las facturas
-  getAll: async (): Promise<FacturaDto[]> => {
+  // Obtener todas las facturas con paginación
+  getAll: async (pageNumber: number = 1, pageSize: number = 10): Promise<FacturaDtoPagedResult> => {
+    try {
+      const response = await api.apiFacturasGet({ pageNumber, pageSize });
+      return response;
+    } catch (error) {
+      console.error('Error al obtener facturas:', error);
+      throw new Error('Error al cargar las facturas');
+    }
+  },
+
+  // Obtener todas las facturas sin paginación (para compatibilidad)
+  getAllUnpaginated: async (): Promise<FacturaDto[]> => {
     try {
       const response = await api.apiFacturasGet({ pageNumber: 1, pageSize: 1000 });
       return response.items || [];
@@ -72,7 +83,7 @@ export const facturasService = {
   // Obtener facturas por estado
   getByEstado: async (estado: number): Promise<FacturaDto[]> => {
     try {
-      const allFacturas = await facturasService.getAll();
+      const allFacturas = await facturasService.getAllUnpaginated();
       return allFacturas.filter(factura => factura.estado === estado);
     } catch (error) {
       console.error('Error al obtener facturas por estado:', error);
@@ -83,7 +94,7 @@ export const facturasService = {
   // Obtener facturas por cliente
   getByCliente: async (clienteId: number): Promise<FacturaDto[]> => {
     try {
-      const allFacturas = await facturasService.getAll();
+      const allFacturas = await facturasService.getAllUnpaginated();
       return allFacturas.filter(factura => factura.cliente?.idCliente === clienteId);
     } catch (error) {
       console.error('Error al obtener facturas por cliente:', error);
@@ -93,7 +104,8 @@ export const facturasService = {
 };
 
 // Funciones de conveniencia
-export const fetchFacturas = () => facturasService.getAll();
+export const fetchFacturas = (pageNumber?: number, pageSize?: number) => 
+  pageNumber && pageSize ? facturasService.getAll(pageNumber, pageSize) : facturasService.getAllUnpaginated();
 export const fetchFacturaById = (id: number) => facturasService.getById(id);
 export const createFactura = (factura: CreateFacturaDto) => facturasService.create(factura);
 export const updateFactura = (id: number, factura: UpdateFacturaDto) => facturasService.update(id, factura);

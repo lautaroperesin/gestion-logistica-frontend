@@ -7,15 +7,25 @@ import type { FacturaDto, CreateFacturaDto, UpdateFacturaDto } from '@/api';
 export const facturasKeys = {
   all: ['facturas'] as const,
   lists: () => [...facturasKeys.all, 'list'] as const,
+  list: (page: number, pageSize: number) => [...facturasKeys.lists(), page, pageSize] as const,
   details: () => [...facturasKeys.all, 'detail'] as const,
   detail: (id: number) => [...facturasKeys.details(), id] as const,
 };
 
-// Hook para obtener todas las facturas
-export const useFacturas = () => {
+// Hook para obtener facturas con paginación
+export const useFacturas = (currentPage: number = 1, pageSize: number = 10) => {
+  return useQuery({
+    queryKey: facturasKeys.list(currentPage, pageSize),
+    queryFn: () => facturasService.getAll(currentPage, pageSize),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+};
+
+// Hook para obtener todas las facturas sin paginación (para compatibilidad)
+export const useAllFacturas = () => {
   return useQuery({
     queryKey: facturasKeys.lists(),
-    queryFn: () => facturasService.getAll(),
+    queryFn: () => facturasService.getAllUnpaginated(),
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 };
@@ -115,6 +125,6 @@ export const useFacturaCalculations = (facturas?: FacturaDto[]) => {
 
 // Hook para estadísticas de facturas usando React Query
 export const useFacturasStats = () => {
-  const { data: facturas = [] } = useFacturas();
-  return useFacturaCalculations(facturas);
+  const { data: facturasResult } = useAllFacturas();
+  return useFacturaCalculations(facturasResult);
 };
