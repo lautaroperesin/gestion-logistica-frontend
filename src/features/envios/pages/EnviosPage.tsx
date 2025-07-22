@@ -125,20 +125,6 @@ export const EnviosPage = () => {
         </div>
       </div>
 
-       {/* Loading */}
-      {loading && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-40">
-          <div className="bg-white rounded-lg p-8 shadow-xl">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin">
-                  <div className=" border-blue-600 rounded-full"></div>
-                </div>
-              <p className="text-gray-600 font-medium">Cargando envíos...</p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Alerts - Mostrar solo errores de carga */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">

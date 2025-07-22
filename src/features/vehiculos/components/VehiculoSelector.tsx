@@ -48,7 +48,7 @@ export const VehiculoSelector: React.FC<VehiculoSelectorProps> = ({
         searchPlaceholder="Buscar vehículo..."
         emptyText="No se encontraron vehículos"
         disabled={disabled}
-        className="bg-white/10 border-white/20 text-black"
+        className="bg-white/10 border-gray-300 text-black"
       />
       {error && (
         <p className="text-red-300 text-sm">{error}</p>

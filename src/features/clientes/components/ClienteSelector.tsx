@@ -52,7 +52,7 @@ export const ClienteSelector: React.FC<ClienteSelectorProps> = ({
         searchPlaceholder="Buscar cliente..."
         emptyText="No se encontraron clientes"
         disabled={disabled}
-        className="bg-white/10 border-white/20 text-black"
+        className="bg-white/10 border-gray-300 text-black"
       />
       {error && (
         <p className="text-red-300 text-sm">{error}</p>

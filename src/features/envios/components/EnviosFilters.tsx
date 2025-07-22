@@ -4,12 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
-import { CustomSelect } from '@/components/ui/custom-select';
 import { Search, X, Filter, ChevronDown, ChevronUp } from 'lucide-react';
-import { useClientes } from '@/features/clientes/hooks/useClientes';
-import { useConductores } from '@/features/conductores/hooks/useConductores';
-import { useVehiculos } from '@/features/vehiculos/hooks/useVehiculos';
-import { useEstadosEnvio } from '@/features/envios/hooks/useEstadosEnvio';
+import { ClienteSelector } from '@/features/clientes/components/ClienteSelector';
+import { ConductorSelector } from '@/features/conductores/components/ConductorSelector';
+import { VehiculoSelector } from '@/features/vehiculos/components/VehiculoSelector';
+import { EstadoEnvioSelector } from '@/features/envios/components/EstadoEnvioSelector';
 
 export interface EnviosFiltersData {
   idConductor?: number;
@@ -33,17 +32,6 @@ export const EnviosFilters = ({ filters, onFiltersChange, onClearFilters }: Envi
   const [isExpanded, setIsExpanded] = useState(false);
   const [localFilters, setLocalFilters] = useState<EnviosFiltersData>(filters);
 
-  // Hooks para obtener las opciones de los selectores
-  const { data: clientesData } = useClientes(1, 100);
-  const { data: conductoresData } = useConductores(1, 100);
-  const { data: vehiculosData } = useVehiculos();
-  const { estados } = useEstadosEnvio();
-
-  // Extraer los arrays de los datos paginados
-  const clientes = (clientesData as any)?.items || [];
-  const conductores = (conductoresData as any)?.items || [];
-  const vehiculos = (vehiculosData as any) || [];
-
   useEffect(() => {
     setLocalFilters(filters);
   }, [filters]);
@@ -63,27 +51,6 @@ export const EnviosFilters = ({ filters, onFiltersChange, onClearFilters }: Envi
   };
 
   const hasActiveFilters = Object.values(filters).some(value => value !== undefined && value !== null && value !== '');
-
-  // Preparar opciones para los selects
-  const clienteOptions = clientes.map((cliente: any) => ({
-    value: cliente.idCliente,
-    label: cliente.nombre
-  }));
-
-  const conductorOptions = conductores.map((conductor: any) => ({
-    value: conductor.idConductor,
-    label: `${conductor.nombre} ${conductor.apellido}`
-  }));
-
-  const vehiculoOptions = vehiculos.map((vehiculo: any) => ({
-    value: vehiculo.idVehiculo,
-    label: `${vehiculo.marca} ${vehiculo.modelo} - ${vehiculo.patente}`
-  }));
-
-  const estadoOptions = estados.map((estado: any) => ({
-    value: estado.idEstado,
-    label: estado.nombre
-  }));
 
   return (
     <Card className="border-gray-200 shadow-sm">
@@ -181,41 +148,33 @@ export const EnviosFilters = ({ filters, onFiltersChange, onClearFilters }: Envi
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Cliente</Label>
-                <CustomSelect
+                <ClienteSelector
                   value={localFilters.idCliente}
-                  onValueChange={(value) => handleFilterChange('idCliente', value ? Number(value) : undefined)}
-                  options={clienteOptions}
-                  placeholder="Todos los clientes"
+                  onValueChange={(value) => handleFilterChange('idCliente', value || undefined)}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Conductor</Label>
-                <CustomSelect
+                <ConductorSelector
                   value={localFilters.idConductor}
-                  onValueChange={(value) => handleFilterChange('idConductor', value ? Number(value) : undefined)}
-                  options={conductorOptions}
-                  placeholder="Todos los conductores"
+                  onValueChange={(value) => handleFilterChange('idConductor', value || undefined)}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Vehículo</Label>
-                <CustomSelect
+                <VehiculoSelector
                   value={localFilters.idVehiculo}
-                  onValueChange={(value) => handleFilterChange('idVehiculo', value ? Number(value) : undefined)}
-                  options={vehiculoOptions}
-                  placeholder="Todos los vehículos"
+                  onValueChange={(value) => handleFilterChange('idVehiculo', value || undefined)}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Estado de Envío</Label>
-                <CustomSelect
+                <EstadoEnvioSelector
                   value={localFilters.estadoEnvio}
-                  onValueChange={(value) => handleFilterChange('estadoEnvio', value ? Number(value) : undefined)}
-                  options={estadoOptions}
-                  placeholder="Todos los estados"
+                  onValueChange={(value) => handleFilterChange('estadoEnvio', value || undefined)}
                 />
               </div>
             </div>

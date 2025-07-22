@@ -49,7 +49,7 @@ export const UbicacionSelectorSimple: React.FC<UbicacionSelectorSimpleProps> = (
         searchPlaceholder="Buscar ubicación..."
         emptyText="No se encontraron ubicaciones"
         disabled={disabled}
-        className="bg-white/10 border-white/20 text-black"
+        className="bg-white/10 border-gray-300 text-black"
       />
       {error && (
         <p className="text-red-300 text-sm">{error}</p>

@@ -48,7 +48,7 @@ export const TipoCargaSelector: React.FC<TipoCargaSelectorProps> = ({
         searchPlaceholder="Buscar tipo de carga..."
         emptyText="No se encontraron tipos de carga"
         disabled={disabled}
-        className="bg-white/10 border-white/20 text-black"
+        className="bg-white/10 border-gray-300 text-black"
       />
       {error && (
         <p className="text-red-300 text-sm">{error}</p>
