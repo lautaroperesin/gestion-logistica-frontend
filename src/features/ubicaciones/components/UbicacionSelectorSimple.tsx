@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUbicaciones } from '../hooks/useUbicaciones';
+import { useAllUbicaciones } from '../hooks/useUbicaciones';
 import { Combobox } from '@/components/ui/combobox';
 import type { UbicacionDto } from '@/api';
 
@@ -17,7 +17,7 @@ export const UbicacionSelectorSimple: React.FC<UbicacionSelectorSimpleProps> = (
   disabled
 }) => {
   // Corregir destructuring para React Query
-  const { data: ubicaciones = [], isLoading: loading } = useUbicaciones();
+  const { data: ubicaciones = [], isLoading: loading } = useAllUbicaciones();
 
   const options = ubicaciones.map((ubicacion: UbicacionDto) => ({
     value: ubicacion.idUbicacion?.toString() || '',

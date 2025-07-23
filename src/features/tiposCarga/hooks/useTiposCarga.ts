@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tiposCargaService } from '../services/tiposCargaService';
-import type { TipoCargaDto } from '@/api';
 
 // Query keys para React Query
 export const tiposCargaKeys = {
@@ -74,25 +73,3 @@ export const useDeleteTipoCarga = () => {
     },
   });
 };
-
-// Hook para estadísticas de tipos de carga
-export const useTiposCargaStats = () => {
-  const { data: tiposCarga = [] } = useTiposCarga();
-  
-  return {
-    totalTipos: tiposCarga.length,
-    loading: !tiposCarga,
-  };
-};
-
-// Tipos para compatibilidad hacia atrás
-export interface UseTiposCargaReturn {
-  tiposCarga: TipoCargaDto[];
-  loading: boolean;
-  error: string | null;
-  refresh: () => Promise<void>;
-  createNewTipoCarga: (tipoCarga: { nombre: string }) => Promise<boolean>;
-  updateExistingTipoCarga: (id: number, tipoCarga: { nombre: string }) => Promise<boolean>;
-  removeTipoCarga: (id: number) => Promise<boolean>;
-  setError: (error: string | null) => void;
-}

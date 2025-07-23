@@ -79,17 +79,3 @@ export const useDeleteCliente = () => {
     },
   });
 };
-
-// Hook para estadísticas de clientes (útil para dashboard)
-export const useClientesStats = () => {
-  const { data: clientesResult } = useClientes(1, 1000); // Obtener todos para estadísticas
-  
-  const clientes = clientesResult?.items || [];
-  
-  return {
-    totalClientes: clientesResult?.totalItems || 0,
-    clientesConEmail: clientes.filter(c => c.email).length,
-    clientesConTelefono: clientes.filter(c => c.telefono).length,
-    loading: !clientesResult,
-  };
-};

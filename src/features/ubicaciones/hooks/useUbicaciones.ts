@@ -114,13 +114,3 @@ export function useLocalidadesByProvincia(provinciaId: number | undefined) {
     staleTime: 30 * 60 * 1000, // 30 minutos
   });
 }
-
-// Hook para estadísticas de ubicaciones
-export const useUbicacionesStats = () => {
-  const { data: ubicaciones = [] } = useAllUbicaciones();
-  
-  return {
-    totalUbicaciones: ubicaciones.length,
-    loading: !ubicaciones,
-  };
-};

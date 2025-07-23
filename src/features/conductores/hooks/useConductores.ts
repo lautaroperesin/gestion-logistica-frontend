@@ -76,17 +76,3 @@ export const useDeleteConductor = () => {
     },
   });
 };
-
-// Hook para estadísticas de conductores
-export const useConductoresStats = () => {
-  const { data: conductoresResult } = useConductores(1, 1000);
-  
-  const conductores = conductoresResult?.items || [];
-  
-  return {
-    totalConductores: conductoresResult?.totalItems || 0,
-    conductoresActivos: conductores.filter(c => c.telefono).length,
-    conductoresConLicencia: conductores.filter(c => c.claseLicencia).length,
-    loading: !conductoresResult,
-  };
-};

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { enviosService, type EnviosFilters } from '../services/enviosService';
-import type { EnvioDto, CreateEnvioDto, UpdateEnvioDto } from '@/api';
+import type { CreateEnvioDto, UpdateEnvioDto } from '@/api';
 
 // Query keys para React Query
 export const enviosKeys = {
@@ -122,17 +122,4 @@ export const useEnviosByCliente = (clienteId: number) => {
     enabled: clienteId > 0,
     staleTime: 5 * 60 * 1000,
   });
-};
-
-// Hook para estadísticas de envíos
-export const useEnviosStats = () => {
-  const { data: enviosData } = useEnvios(1, 1000);
-  const envios = enviosData?.items || [];
-  
-  return {
-    totalEnvios: enviosData?.totalItems || 0,
-    enviosPendientes: envios.filter((e: EnvioDto) => e.estado?.idEstado === 1).length,
-    enviosEntregados: envios.filter((e: EnvioDto) => e.estado?.idEstado === 2).length,
-    loading: !enviosData,
-  };
 };
