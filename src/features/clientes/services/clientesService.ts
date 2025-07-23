@@ -21,17 +21,6 @@ export const fetchClientes = async (pageNumber: number = 1, pageSize: number = 1
   }
 };
 
-// Servicio para obtener todos los clientes sin paginación para selectores
-export const fetchAllClientes = async (): Promise<ClienteDto[]> => {
-  try {
-    const result = await clientesApi.apiClientesGet({ pageNumber: 1, pageSize: 300 });
-    return result.items || [];
-  } catch (error) {
-    console.error('Error fetching all clientes:', error);
-    throw new Error('Error al cargar todos los clientes');
-  }
-};
-
 // Servicio para obtener un cliente por ID
 export const fetchClienteById = async (id: number): Promise<ClienteDto> => {
   try {

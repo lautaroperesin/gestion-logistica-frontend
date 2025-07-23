@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAllClientes } from '../hooks/useClientes';
+import { useClientes } from '../hooks/useClientes';
 import { Combobox } from '@/components/ui/combobox';
 import type { ClienteDto } from '@/api';
 
@@ -17,9 +17,10 @@ export const ClienteSelector: React.FC<ClienteSelectorProps> = ({
   disabled
 }) => {
   // Corregir destructuring para React Query
-  const { data: result, isLoading: loading } = useAllClientes();
+  const { data: result, isLoading: loading } = useClientes(1, 300);
 
-  const clientes = result || [];
+  // Extraer clientes del resultado paginado
+  const clientes = result?.items || [];
 
   const options = clientes.map((cliente: ClienteDto) => ({
     value: cliente.idCliente?.toString() || '',
