@@ -17,7 +17,7 @@ export const ConductorSelector: React.FC<ConductorSelectorProps> = ({
   disabled
 }) => {
   // Corregir destructuring para React Query
-  const { data: result, isLoading: loading } = useConductores();
+  const { data: result, isLoading: loading } = useConductores(1, 300);
 
   // Extraer conductores del resultado paginado
   const conductores = result?.items || [];
