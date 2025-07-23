@@ -4,9 +4,8 @@ import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Pagination } from '../../../components/ui/pagination';
 import { Settings } from 'lucide-react';
-import { useMovimientos, useAllMovimientos, useDeleteMovimiento, useMovimientosStats } from '../hooks/useMovimientosCaja';
+import { useMovimientos, useDeleteMovimiento } from '../hooks/useMovimientosCaja';
 import { MovimientosCajaTable } from '../components/MovimientosCajaTable';
-import { MovimientosCajaStats } from '../components/MovimientosCajaStats';
 import { MovimientoDetailsModal } from '../components/MovimientoDetailsModal';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
@@ -29,15 +28,12 @@ export const MovimientosCajaPage = () => {
     refetch 
   } = useMovimientos(currentPage, pageSize);
 
-  const { data: allMovimientos = [] } = useAllMovimientos(); // Para estadísticas
   const deleteMovimiento = useDeleteMovimiento();
   
   // Extraer datos de la respuesta paginada
   const movimientos = movimientosResult?.items || [];
   const totalItems = movimientosResult?.totalItems || 0;
   const totalPages = movimientosResult?.totalPages || 1;
-  
-  const stats = useMovimientosStats(allMovimientos);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -113,9 +109,6 @@ export const MovimientosCajaPage = () => {
           Gestionar Métodos de Pago
         </Button>
       </div>
-
-      {/* Estadísticas */}
-      <MovimientosCajaStats stats={stats} />
 
       {/* Tabla de movimientos */}
       <div className="bg-white rounded-lg shadow">

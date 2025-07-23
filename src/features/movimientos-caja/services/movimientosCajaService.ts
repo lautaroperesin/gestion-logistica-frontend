@@ -16,17 +16,6 @@ export const movimientosCajaService = {
     }
   },
 
-  // Obtener todos los movimientos sin paginación (para compatibilidad)
-  getAllUnpaginated: async (): Promise<MovimientoCajaDto[]> => {
-    try {
-      const response = await movimientosApi.apiMovimientosCajaGet({ pageNumber: 1, pageSize: 1000 });
-      return response.items || [];
-    } catch (error) {
-      console.error('Error al obtener movimientos de caja:', error);
-      throw new Error('Error al cargar los movimientos de caja');
-    }
-  },
-
   // Obtener un movimiento por ID
   getById: async (id: number): Promise<MovimientoCajaDto> => {
     try {

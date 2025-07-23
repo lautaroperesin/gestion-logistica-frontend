@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Eye, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Eye, Trash2 } from 'lucide-react';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import type { MovimientoCajaDto } from '../../../api';
@@ -13,51 +12,12 @@ interface MovimientosCajaTableProps {
   onDelete: (id: number) => void;
 }
 
-type SortField = 'fechaPago' | 'monto';
-type SortDirection = 'asc' | 'desc';
-
 export const MovimientosCajaTable = ({
   movimientos,
   loading,
   onView,
   onDelete
 }: MovimientosCajaTableProps) => {
-  const [sortField, setSortField] = useState<SortField>('fechaPago');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
-  const sortedMovimientos = [...movimientos].sort((a, b) => {
-    const direction = sortDirection === 'asc' ? 1 : -1;
-    
-    switch (sortField) {
-      case 'fechaPago':
-        const dateA = a.fechaPago ? new Date(a.fechaPago).getTime() : 0;
-        const dateB = b.fechaPago ? new Date(b.fechaPago).getTime() : 0;
-        return (dateA - dateB) * direction;
-      
-      case 'monto':
-        return ((a.monto || 0) - (b.monto || 0)) * direction;
-      
-      default:
-        return 0;
-    }
-  });
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return null;
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="w-4 h-4" /> : 
-      <ChevronDown className="w-4 h-4" />;
-  };
-
   if (loading) {
     return (
       <Card className="p-6">
@@ -87,12 +47,10 @@ export const MovimientosCajaTable = ({
           <thead className="bg-gray-50">
             <tr>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('fechaPago')}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div className="flex items-center space-x-1">
                   <span>Fecha</span>
-                  <SortIcon field="fechaPago" />
                 </div>
               </th>
               <th 
@@ -109,12 +67,10 @@ export const MovimientosCajaTable = ({
                 Método de Pago
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('monto')}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div className="flex items-center space-x-1">
                   <span>Monto</span>
-                  <SortIcon field="monto" />
                 </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -126,7 +82,7 @@ export const MovimientosCajaTable = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {sortedMovimientos.map((movimiento) => (
+            {movimientos.map((movimiento) => (
               <tr key={movimiento.idMovimiento} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {movimiento.fechaPago ? 

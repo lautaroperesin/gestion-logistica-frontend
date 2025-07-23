@@ -1,9 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { movimientosCajaService } from '../services/movimientosCajaService';
-import type { 
-  MovimientoCajaDto, 
-  CreateMovimientoCajaDto
-} from '../../../api';
+import type { CreateMovimientoCajaDto } from '../../../api';
 
 // Query keys
 export const movimientosKeys = {
@@ -20,15 +17,6 @@ export const useMovimientos = (currentPage: number = 1, pageSize: number = 10) =
   return useQuery({
     queryKey: movimientosKeys.list(currentPage, pageSize),
     queryFn: () => movimientosCajaService.getAll(currentPage, pageSize),
-    staleTime: 5 * 60 * 1000, // 5 minutos
-  });
-};
-
-// Hook para obtener todos los movimientos sin paginación (para compatibilidad)
-export const useAllMovimientos = () => {
-  return useQuery({
-    queryKey: movimientosKeys.lists(),
-    queryFn: () => movimientosCajaService.getAllUnpaginated(),
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 };
@@ -77,35 +65,4 @@ export const useDeleteMovimiento = () => {
       queryClient.invalidateQueries({ queryKey: ['facturas'] });
     },
   });
-};
-
-// Hook para estadísticas de movimientos
-export const useMovimientosStats = (movimientos?: MovimientoCajaDto[]) => {
-  if (!movimientos) {
-    return {
-      totalMovimientos: 0,
-      montoTotal: 0,
-      porMetodo: {} as Record<string, { cantidad: number; monto: number }>,
-    };
-  }
-
-  const totalMovimientos = movimientos.length;
-  const montoTotal = movimientos.reduce((sum, mov) => sum + (mov.monto || 0), 0);
-
-  // Estadísticas por método de pago
-  const porMetodo = movimientos.reduce((acc, mov) => {
-    const metodoPago = mov.metodoPago?.nombre || 'Sin método';
-    if (!acc[metodoPago]) {
-      acc[metodoPago] = { cantidad: 0, monto: 0 };
-    }
-    acc[metodoPago].cantidad += 1;
-    acc[metodoPago].monto += mov.monto || 0;
-    return acc;
-  }, {} as Record<string, { cantidad: number; monto: number }>);
-
-  return {
-    totalMovimientos,
-    montoTotal,
-    porMetodo,
-  };
 };
