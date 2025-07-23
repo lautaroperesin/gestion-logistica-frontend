@@ -2,30 +2,27 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { facturasService } from '../services/facturasService';
 import type { FacturaDto, CreateFacturaDto, UpdateFacturaDto } from '@/api';
+import type { FacturasFiltersData } from '../components/FacturasFilters';
 
 // Query keys para React Query
 export const facturasKeys = {
   all: ['facturas'] as const,
   lists: () => [...facturasKeys.all, 'list'] as const,
-  list: (page: number, pageSize: number) => [...facturasKeys.lists(), page, pageSize] as const,
+  list: (page: number, pageSize: number, filters?: FacturasFiltersData) => 
+    [...facturasKeys.lists(), page, pageSize, filters] as const,
   details: () => [...facturasKeys.all, 'detail'] as const,
   detail: (id: number) => [...facturasKeys.details(), id] as const,
 };
 
-// Hook para obtener facturas con paginación
-export const useFacturas = (currentPage: number = 1, pageSize: number = 10) => {
+// Hook para obtener facturas con paginación y filtros
+export const useFacturas = (
+  currentPage: number = 1, 
+  pageSize: number = 10, 
+  filters?: FacturasFiltersData
+) => {
   return useQuery({
-    queryKey: facturasKeys.list(currentPage, pageSize),
-    queryFn: () => facturasService.getAll(currentPage, pageSize),
-    staleTime: 5 * 60 * 1000, // 5 minutos
-  });
-};
-
-// Hook para obtener todas las facturas sin paginación (para compatibilidad)
-export const useAllFacturas = () => {
-  return useQuery({
-    queryKey: facturasKeys.lists(),
-    queryFn: () => facturasService.getAllUnpaginated(),
+    queryKey: facturasKeys.list(currentPage, pageSize, filters),
+    queryFn: () => facturasService.getAll(currentPage, pageSize, filters),
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 };
@@ -121,10 +118,4 @@ export const useFacturaCalculations = (facturas?: FacturaDto[]) => {
   }, [facturas]);
 
   return calculations;
-};
-
-// Hook para estadísticas de facturas usando React Query
-export const useFacturasStats = () => {
-  const { data: facturasResult } = useAllFacturas();
-  return useFacturaCalculations(facturasResult);
 };

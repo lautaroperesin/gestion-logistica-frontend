@@ -1,26 +1,32 @@
 import { FacturasApi } from '@/api';
 import { apiConfig } from '@/api/config';
 import type { FacturaDto, CreateFacturaDto, UpdateFacturaDto, FacturaDtoPagedResult } from '@/api';
+import type { FacturasFiltersData } from '../components/FacturasFilters';
 
 const api = new FacturasApi(apiConfig);
 
 export const facturasService = {
-  // Obtener todas las facturas con paginación
-  getAll: async (pageNumber: number = 1, pageSize: number = 10): Promise<FacturaDtoPagedResult> => {
+  // Obtener todas las facturas con paginación y filtros
+  getAll: async (
+    pageNumber: number = 1, 
+    pageSize: number = 10, 
+    filters?: FacturasFiltersData
+  ): Promise<FacturaDtoPagedResult> => {
     try {
-      const response = await api.apiFacturasGet({ pageNumber, pageSize });
+      const params: any = { pageNumber, pageSize };
+      
+      if (filters) {
+        if (filters.idCliente) params.idCliente = filters.idCliente;
+        if (filters.numeroFactura) params.numeroFactura = filters.numeroFactura;
+        if (filters.fechaEmisionDesde) params.fechaEmisionDesde = filters.fechaEmisionDesde;
+        if (filters.fechaEmisionHasta) params.fechaEmisionHasta = filters.fechaEmisionHasta;
+        if (filters.estado !== undefined) params.estadoFactura = filters.estado;
+        //if (filters.fechaVencimientoDesde) params.fechaVencimientoDesde = filters.fechaVencimientoDesde;
+        //if (filters.fechaVencimientoHasta) params.fechaVencimientoHasta = filters.fechaVencimientoHasta;
+      }
+      
+      const response = await api.apiFacturasGet(params);
       return response;
-    } catch (error) {
-      console.error('Error al obtener facturas:', error);
-      throw new Error('Error al cargar las facturas');
-    }
-  },
-
-  // Obtener todas las facturas sin paginación (para compatibilidad)
-  getAllUnpaginated: async (): Promise<FacturaDto[]> => {
-    try {
-      const response = await api.apiFacturasGet({ pageNumber: 1, pageSize: 1000 });
-      return response.items || [];
     } catch (error) {
       console.error('Error al obtener facturas:', error);
       throw new Error('Error al cargar las facturas');
@@ -104,8 +110,7 @@ export const facturasService = {
 };
 
 // Funciones de conveniencia
-export const fetchFacturas = (pageNumber?: number, pageSize?: number) => 
-  pageNumber && pageSize ? facturasService.getAll(pageNumber, pageSize) : facturasService.getAllUnpaginated();
+export const fetchFacturas = (pageNumber?: number, pageSize?: number) => facturasService.getAll(pageNumber, pageSize);
 export const fetchFacturaById = (id: number) => facturasService.getById(id);
 export const createFactura = (factura: CreateFacturaDto) => facturasService.create(factura);
 export const updateFactura = (id: number, factura: UpdateFacturaDto) => facturasService.update(id, factura);

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FacturasTable } from '../components/FacturasTable';
+import { FacturasFilters, type FacturasFiltersData } from '../components/FacturasFilters';
 import { FacturaDetailsModal } from '../components/FacturaDetailsModal';
-import { useFacturas, useAllFacturas, useDeleteFactura } from '../hooks/useFacturas';
+import { useFacturas, useDeleteFactura } from '../hooks/useFacturas';
 import { RegistrarPagoModal } from '@/features/movimientos-caja/components/RegistrarPagoModal';
 import { Card } from '@/components/ui/card';
 import { Pagination } from '@/components/ui/pagination';
@@ -10,7 +11,6 @@ import { AlertTriangle } from 'lucide-react';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { showDeleteSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import type { FacturaDto } from '@/api';
-import { FacturasStats } from '../components/FacturasStats';
 
 export const FacturasPage = () => {
   const navigate = useNavigate();
@@ -20,8 +20,10 @@ export const FacturasPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   
-  const { data: facturasData, isLoading: loading, error } = useFacturas(currentPage, pageSize);
-  const { data: allFacturas = [] } = useAllFacturas(); // Para estadísticas
+  // Estado para filtros
+  const [filters, setFilters] = useState<FacturasFiltersData>({});
+  
+  const { data: facturasData, isLoading: loading, error } = useFacturas(currentPage, pageSize, filters);
   const deleteFacturaMutation = useDeleteFactura();
   
   // Extraer datos de la respuesta paginada
@@ -40,6 +42,16 @@ export const FacturasPage = () => {
 
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
+
+  const handleFiltersChange = (newFilters: FacturasFiltersData) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Resetear a la primera página cuando cambian los filtros
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
     setCurrentPage(1);
   };
 
@@ -119,8 +131,12 @@ export const FacturasPage = () => {
         </div>
       </div>
 
-      {/* Estadísticas */}
-      {!loading && allFacturas && <FacturasStats facturas={allFacturas} />}
+      {/* Filtros */}
+      <FacturasFilters
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onClearFilters={handleClearFilters}
+      />
 
       {/* Tabla de facturas */}
         <FacturasTable
