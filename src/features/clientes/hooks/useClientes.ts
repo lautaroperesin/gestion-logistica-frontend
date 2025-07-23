@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchClientes, createCliente, updateCliente, deleteCliente, fetchClienteById } from '../services/clientesService';
+import { fetchClientes, createCliente, updateCliente, deleteCliente, fetchClienteById, fetchAllClientes } from '../services/clientesService';
 import type { CreateClienteDto, UpdateClienteDto } from '@/api';
 
 // Query keys para React Query
@@ -18,6 +18,15 @@ export const useClientes = (page: number = 1, pageSize: number = 10) => {
     queryFn: () => fetchClientes(page, pageSize),
     staleTime: 5 * 60 * 1000, // 5 minutos
     placeholderData: (previousData) => previousData, // Mantener datos anteriores mientras carga
+  });
+};
+
+// Hook para obtener todos los clientes sin paginación para mostrar en selectores
+export const useAllClientes = () => {
+  return useQuery({
+    queryKey: clientesKeys.lists(),
+    queryFn: () => fetchAllClientes(),
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 };
 
