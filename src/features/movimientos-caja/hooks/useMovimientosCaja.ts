@@ -30,15 +30,6 @@ export const useMovimiento = (id: number) => {
   });
 };
 
-// Hook para obtener movimientos por factura
-export const useMovimientosByFactura = (facturaId: number) => {
-  return useQuery({
-    queryKey: movimientosKeys.byFactura(facturaId),
-    queryFn: () => movimientosCajaService.getByFactura(facturaId),
-    enabled: facturaId > 0,
-  });
-};
-
 // Hook para crear un movimiento
 export const useCreateMovimiento = () => {
   const queryClient = useQueryClient();

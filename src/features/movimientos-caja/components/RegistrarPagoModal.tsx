@@ -16,7 +16,7 @@ import { Label } from '../../../components/ui/label';
 import { Alert, AlertDescription } from '../../../components/ui/alert';
 import { CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { MetodoPagoSelector } from '../../metodos-pago/components/MetodoPagoSelector';
-import { useCreateMovimiento, useMovimientosByFactura } from '../hooks/useMovimientosCaja';
+import { useCreateMovimiento } from '../hooks/useMovimientosCaja';
 import type { FacturaDto } from '../../../api';
 
 const pagoSchema = z.object({
@@ -42,14 +42,12 @@ export const RegistrarPagoModal = ({
 }: RegistrarPagoModalProps) => {
   const createMovimiento = useCreateMovimiento();
   
-  // Obtener movimientos existentes de esta factura
-  const { data: movimientosPrevios = [] } = useMovimientosByFactura(factura.idFactura || 0);
-
-  // Calcular totales
+  // Obtener totales
   const totalFactura = factura.total || 0;
-  const totalPagado = movimientosPrevios.reduce((sum, mov) => sum + (mov.monto || 0), 0);
-  const saldoPendiente = totalFactura - totalPagado;
-  const estaCompletamentePagada = saldoPendiente <= 0;
+  const totalPagado = factura.totalPagado || 0;
+  const saldoPendiente = factura.saldoPendiente || 0;
+  const movimientosPrevios = factura.movimientosCaja || [];
+  const estaCompletamentePagada = factura.estaPagada || false;
 
   const {
     register,

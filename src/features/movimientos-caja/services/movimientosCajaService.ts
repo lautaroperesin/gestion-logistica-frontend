@@ -47,16 +47,5 @@ export const movimientosCajaService = {
       console.error('Error al eliminar movimiento de caja:', error);
       throw new Error('Error al eliminar el movimiento de caja');
     }
-  },
-
-  // Obtener movimientos por factura
-  getByFactura: async (facturaId: number): Promise<MovimientoCajaDto[]> => {
-    try {
-      const response = await movimientosApi.apiMovimientosCajaFacturaIdFacturaGet({ idFactura: facturaId });
-      return response || [];
-    } catch (error) {
-      console.error('Error al obtener movimientos por factura:', error);
-      throw new Error('Error al cargar los pagos de la factura');
-    }
   }
 };
