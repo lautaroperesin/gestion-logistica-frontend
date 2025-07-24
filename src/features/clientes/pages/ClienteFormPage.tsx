@@ -6,7 +6,6 @@ import { z } from "zod";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useCliente, useCreateCliente, useUpdateCliente } from "../hooks/useClientes";
 import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from "@/lib/toast-utils";
@@ -110,23 +109,10 @@ export const ClienteFormPage = () => {
 
   if (loadingData) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate("/clientes")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-            </div>
+      <div className="container min-h-screen">
+        <Card className="max-w-4xl mx-auto shadow-xl border-0">
+          <CardContent className="p-8">
+            <div className="text-center text-black">Cargando cliente...</div>
           </CardContent>
         </Card>
       </div>
@@ -134,113 +120,151 @@ export const ClienteFormPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => navigate("/clientes")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver a Clientes
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <User className="h-6 w-6 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? "Editar Cliente" : "Nuevo Cliente"}
-          </h1>
-          <p className="text-gray-600">
-            {isEditing ? "Modifica los datos del cliente" : "Completa la información del nuevo cliente"}
-          </p>
-        </div>
-      </div>
-
-      {/* Form */}
-      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Información del Cliente
-          </CardTitle>
+    <div className="container min-h-screen">
+      <Card className="max-w-4xl mx-auto shadow-xl border-0">
+        <CardHeader className="text-black rounded-t-lg py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/clientes")}
+                className="text-black hover:bg-blue-100 border-black/20"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg">
+                  <User className="w-8 h-8" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold">
+                    {isEditing ? "Editar Cliente" : "Nuevo Cliente"}
+                  </CardTitle>
+                  <p className="text-gray-500 text-sm">
+                    {isEditing ? "Modifica los datos del cliente" : "Complete la información del nuevo cliente"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Nombre */}
-              <div className="space-y-2">
-                <Label htmlFor="nombre">
-                  Nombre <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="nombre"
-                  {...register("nombre")}
-                  placeholder="Ingrese el nombre del cliente"
-                  className="bg-white/50 border-white/30"
-                />
-                {errors.nombre && (
-                  <p className="text-red-500 text-sm">{errors.nombre.message}</p>
-                )}
-              </div>
 
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...register("email")}
-                  placeholder="cliente@ejemplo.com"
-                  className="bg-white/50 border-white/30"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm">{errors.email.message}</p>
-                )}
-              </div>
-
-              {/* Teléfono */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  type="tel"
-                  {...register("telefono")}
-                  placeholder="+54 11 1234-5678"
-                  className="bg-white/50 border-white/30"
-                />
-                {errors.telefono && (
-                  <p className="text-red-500 text-sm">{errors.telefono.message}</p>
-                )}
+        <CardContent className="p-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Información Personal */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Información Personal
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre Completo *
+                  </label>
+                  <div className="relative">
+                    <Input
+                      {...register("nombre")}
+                      type="text"
+                      className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                      placeholder="Ingrese el nombre completo del cliente"
+                    />
+                  </div>
+                  {errors.nombre && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.nombre.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/clientes")}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={!isValid || isSubmitting}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isEditing ? "Actualizar" : "Crear"} Cliente
-                  </>
-                )}
-              </Button>
+            {/* Información de Contacto */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Información de Contacto
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Correo Electrónico
+                  </label>
+                  <div className="relative">
+                    <Input
+                      {...register("email")}
+                      type="email"
+                      className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                      placeholder="cliente@ejemplo.com"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Número de Teléfono
+                  </label>
+                  <div className="relative">
+                    <Input
+                      {...register("telefono")}
+                      type="tel"
+                      className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                      placeholder="+54 11 1234-5678"
+                    />
+                  </div>
+                  {errors.telefono && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.telefono.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/clientes")}
+                  disabled={isSubmitting}
+                  className="px-8 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={!isValid || isSubmitting}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span className="font-medium">
+                        {isEditing ? 'Actualizando...' : 'Creando...'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Save className="w-5 h-5" />
+                      <span className="font-medium">
+                        {isEditing ? "Actualizar Cliente" : "Crear Cliente"}
+                      </span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>

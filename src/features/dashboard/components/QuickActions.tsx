@@ -52,7 +52,7 @@ export const QuickActions = () => {
       title: "Nueva Ubicación",
       description: "Agregar punto de entrega",
       icon: <MapPin className="h-4 w-4" />,
-      href: "/ubicaciones/nueva",
+      href: "/ubicaciones/nuevo",
       variant: "outline" as const,
     },
   ];
