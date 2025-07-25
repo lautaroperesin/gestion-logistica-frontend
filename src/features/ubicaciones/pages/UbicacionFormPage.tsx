@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { MapPin, Save, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import UbicacionSelector from '../components/UbicacionSelector';
@@ -129,23 +128,10 @@ export default function UbicacionFormPage() {
 
   if (isEditing && loadingUbicacion) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate("/ubicaciones")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-            </div>
+      <div className="container min-h-screen">
+        <Card className="max-w-4xl mx-auto shadow-xl border-0">
+          <CardContent className="p-8">
+            <div className="text-center text-black">Cargando ubicación...</div>
           </CardContent>
         </Card>
       </div>
@@ -153,121 +139,159 @@ export default function UbicacionFormPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => navigate("/ubicaciones")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver a Ubicaciones
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <MapPin className="h-6 w-6 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? "Editar Ubicación" : "Nueva Ubicación"}
-          </h1>
-          <p className="text-gray-600">
-            {isEditing ? "Modifica los datos de la ubicación" : "Completa la información para crear una nueva ubicación"}
-          </p>
-        </div>
-      </div>
-
-      {/* Form */}
-      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
-        <CardHeader className="text-black rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Información de la Ubicación
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Selector de ubicación jerárquico */}
-              <UbicacionSelector
-                selectedPaisId={paisId || undefined}
-                selectedProvinciaId={provinciaId || undefined}
-                selectedLocalidadId={localidadId || undefined}
-                onPaisChange={handlePaisChange}
-                onProvinciaChange={handleProvinciaChange}
-                onLocalidadChange={handleLocalidadChange}
-                disabled={isSubmitting || isEditing}
-            />
-
-            {/* Errores de validación de ubicación */}
-            {errors.paisId && (
-              <p className="text-red-500 text-sm">{errors.paisId.message}</p>
-            )}
-            {errors.provinciaId && (
-              <p className="text-red-500 text-sm">{errors.provinciaId.message}</p>
-            )}
-            {errors.localidadId && (
-              <p className="text-red-500 text-sm">{errors.localidadId.message}</p>
-            )}
-
-            <div className="grid gap-6 md:grid-cols-1">
-              {/* Dirección */}
-              <div className="space-y-2">
-                <Label htmlFor="direccion">
-                  Dirección <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="direccion"
-                  {...register('direccion')}
-                  placeholder="Ingrese la dirección específica (ej: Av. Corrientes 1234)"
-                  className="bg-white/50 border-white/30"
-                  disabled={isSubmitting}
-                />
-                {errors.direccion && (
-                  <p className="text-red-500 text-sm">{errors.direccion.message}</p>
-                )}
+    <div className="container min-h-screen">
+      <Card className="max-w-4xl mx-auto shadow-xl border-0">
+        <CardHeader className="text-black rounded-t-lg py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/ubicaciones")}
+                className="text-black hover:bg-blue-100 border-black/20"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg">
+                  <MapPin className="w-8 h-8" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold">
+                    {isEditing ? "Editar Ubicación" : "Nueva Ubicación"}
+                  </CardTitle>
+                  <p className="text-gray-500 text-sm">
+                    {isEditing ? "Modifica los datos de la ubicación" : "Complete la información de la nueva ubicación"}
+                  </p>
+                </div>
               </div>
+            </div>
+          </div>
+        </CardHeader>
 
-              {/* Descripción */}
-              <div className="space-y-2">
-                <Label htmlFor="descripcion">Descripción</Label>
-                <Input
-                  id="descripcion"
-                  {...register('descripcion')}
-                  placeholder="Descripción adicional (opcional)"
-                  className="bg-white/50 border-white/30"
-                  disabled={isSubmitting}
+        <CardContent className="p-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Ubicación Geográfica */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Ubicación Geográfica
+              </h3>
+              <div className="space-y-4">
+                <UbicacionSelector
+                  selectedPaisId={paisId || undefined}
+                  selectedProvinciaId={provinciaId || undefined}
+                  selectedLocalidadId={localidadId || undefined}
+                  onPaisChange={handlePaisChange}
+                  onProvinciaChange={handleProvinciaChange}
+                  onLocalidadChange={handleLocalidadChange}
+                  disabled={isSubmitting || isEditing}
                 />
-                {errors.descripcion && (
-                  <p className="text-red-500 text-sm">{errors.descripcion.message}</p>
+                
+                {/* Errores de validación de ubicación */}
+                {errors.paisId && (
+                  <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.paisId.message}
+                  </p>
+                )}
+                {errors.provinciaId && (
+                  <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.provinciaId.message}
+                  </p>
+                )}
+                {errors.localidadId && (
+                  <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.localidadId.message}
+                  </p>
                 )}
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/ubicaciones")}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={!isValid || isSubmitting}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isEditing ? "Actualizar" : "Crear"} Ubicación
-                  </>
-                )}
-              </Button>
+            {/* Información Específica */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Información Específica
+              </h3>
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dirección *
+                  </label>
+                  <Input
+                    {...register('direccion')}
+                    type="text"
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="Ingrese la dirección específica (ej: Av. Corrientes 1234)"
+                    disabled={isSubmitting}
+                  />
+                  {errors.direccion && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.direccion.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Descripción
+                  </label>
+                  <Input
+                    {...register('descripcion')}
+                    type="text"
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="Descripción adicional (opcional)"
+                    disabled={isSubmitting}
+                  />
+                  {errors.descripcion && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.descripcion.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/ubicaciones")}
+                  disabled={isSubmitting}
+                  className="px-8 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={!isValid || isSubmitting}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span className="font-medium">
+                        {isEditing ? 'Actualizando...' : 'Creando...'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Save className="w-5 h-5" />
+                      <span className="font-medium">
+                        {isEditing ? "Actualizar Ubicación" : "Crear Ubicación"}
+                      </span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>

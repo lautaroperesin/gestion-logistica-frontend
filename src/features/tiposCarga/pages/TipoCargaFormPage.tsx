@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ArrowLeft, Save, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useTipoCarga, useCreateTipoCarga, useUpdateTipoCarga } from "../hooks/useTiposCarga";
 import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 
@@ -78,19 +79,10 @@ export const TipoCargaFormPage = () => {
 
   if (loadingData) {
     return (
-      <div className="w-full space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate("/tipos-carga")} className="shadow-sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Tipos de Carga
-          </Button>
-        </div>
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+      <div className="container min-h-screen">
+        <Card className="max-w-4xl mx-auto shadow-xl border-0">
           <CardContent className="p-8">
-            <div className="animate-pulse space-y-6">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-12 bg-gray-200 rounded"></div>
-            </div>
+            <div className="text-center text-black">Cargando tipo de carga...</div>
           </CardContent>
         </Card>
       </div>
@@ -98,82 +90,100 @@ export const TipoCargaFormPage = () => {
   }
 
   return (
-    <div className="w-full space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => navigate("/tipos-carga")} className="shadow-sm">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver a Tipos de Carga
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-gradient-to-br from-blue-100 to-green-100 rounded-xl">
-          <Package className="h-7 w-7 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? "Editar Tipo de Carga" : "Nuevo Tipo de Carga"}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {isEditing ? "Modifica los datos del tipo de carga" : "Completa la información del nuevo tipo de carga"}
-          </p>
-        </div>
-      </div>
-
-      {/* Form */}
-      <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50">
-          <CardTitle className="text-xl font-bold text-gray-900">Información del Tipo de Carga</CardTitle>
+    <div className="container min-h-screen">
+      <Card className="max-w-4xl mx-auto shadow-xl border-0">
+        <CardHeader className="text-black rounded-t-lg py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/tipos-carga")}
+                className="text-black hover:bg-blue-100 border-black/20"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg">
+                  <Package className="w-8 h-8" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold">
+                    {isEditing ? "Editar Tipo de Carga" : "Nuevo Tipo de Carga"}
+                  </CardTitle>
+                  <p className="text-gray-500 text-sm">
+                    {isEditing ? "Modifica los datos del tipo de carga" : "Complete la información del nuevo tipo de carga"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-6">
-              {/* Nombre */}
-              <div className="space-y-2">
-                <label htmlFor="nombre" className="text-sm font-semibold text-gray-700">
-                  Nombre del Tipo de Carga <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="nombre"
-                  type="text"
-                  {...register("nombre")}
-                  placeholder="Ej: Líquidos, Frágiles, Peligrosos, etc."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
-                />
-                {errors.nombre && (
-                  <p className="text-sm text-red-600">{errors.nombre.message}</p>
-                )}
+
+        <CardContent className="p-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Información Básica */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Información Básica
+              </h3>
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre del Tipo de Carga *
+                  </label>
+                  <Input
+                    {...register("nombre")}
+                    type="text"
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="Ej: Líquidos, Frágiles, Peligrosos, etc."
+                  />
+                  {errors.nombre && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.nombre.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/tipos-carga")}
-                disabled={loading}
-                className="px-6 py-3 shadow-sm"
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={loading}
-                className="px-6 py-3 shadow-md bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    {isEditing ? "Actualizando..." : "Creando..."}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    {isEditing ? "Actualizar" : "Crear"} Tipo de Carga
-                  </div>
-                )}
-              </Button>
+            {/* Botones */}
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/tipos-carga")}
+                  disabled={loading}
+                  className="px-8 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span className="font-medium">
+                        {isEditing ? 'Actualizando...' : 'Creando...'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Save className="w-5 h-5" />
+                      <span className="font-medium">
+                        {isEditing ? "Actualizar Tipo de Carga" : "Crear Tipo de Carga"}
+                      </span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>

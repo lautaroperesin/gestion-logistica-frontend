@@ -6,7 +6,6 @@ import { z } from "zod";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateConductor, useUpdateConductor, useConductor } from "../hooks/useConductores";
@@ -171,23 +170,10 @@ export const ConductorFormPage = () => {
 
   if (loadingData) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate("/conductores")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-            </div>
+      <div className="container min-h-screen">
+        <Card className="max-w-4xl mx-auto shadow-xl border-0">
+          <CardContent className="p-8">
+            <div className="text-center text-black">Cargando conductor...</div>
           </CardContent>
         </Card>
       </div>
@@ -195,240 +181,278 @@ export const ConductorFormPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => navigate("/conductores")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver a Conductores
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <User className="h-6 w-6 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? "Editar Conductor" : "Nuevo Conductor"}
-          </h1>
-          <p className="text-gray-600">
-            {isEditing ? "Modifica los datos del conductor" : "Completa la información del nuevo conductor"}
-          </p>
-        </div>
-      </div>
-
-      {/* Form */}
-      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Información del Conductor
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Nombre */}
-              <div className="space-y-2">
-                <Label htmlFor="nombre">
-                  Nombre <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="nombre"
-                  {...register("nombre")}
-                  placeholder="Ingrese el nombre del conductor"
-                  className="bg-white/50 border-white/30"
-                />
-                {errors.nombre && (
-                  <p className="text-red-500 text-sm">{errors.nombre.message}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...register("email")}
-                  placeholder="conductor@ejemplo.com"
-                  className="bg-white/50 border-white/30"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm">{errors.email.message}</p>
-                )}
-              </div>
-
-              {/* DNI */}
-              <div className="space-y-2">
-                <Label htmlFor="dni">
-                  DNI <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="dni"
-                  {...register("dni")}
-                  placeholder="12345678"
-                  maxLength={8}
-                  className="bg-white/50 border-white/30"
-                  onInput={(e) => {
-                    const target = e.target as HTMLInputElement;
-                    target.value = target.value.replace(/\D/g, '');
-                  }}
-                />
-                {errors.dni && (
-                  <p className="text-red-500 text-sm">{errors.dni.message}</p>
-                )}
-              </div>
-
-              {/* Teléfono */}
-              <div className="space-y-2">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  type="tel"
-                  {...register("telefono")}
-                  placeholder="+54 11 1234-5678"
-                  className="bg-white/50 border-white/30"
-                />
-                {errors.telefono && (
-                  <p className="text-red-500 text-sm">{errors.telefono.message}</p>
-                )}
-              </div>
-
-              {/* Clase Licencia */}
-              <div className="space-y-2">
-                <Label htmlFor="claseLicencia">
-                  Clase de Licencia <span className="text-red-500">*</span>
-                </Label>
-                <Select 
-                  value={watchedClaseLicencia} 
-                  onValueChange={(value) => setValue('claseLicencia', value, { shouldValidate: true })}
-                >
-                  <SelectTrigger className="bg-white/50 border-white/30">
-                    <SelectValue placeholder="Seleccionar clase de licencia" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="A">Clase A - Motocicletas</SelectItem>
-                    <SelectItem value="B">Clase B - Automóviles</SelectItem>
-                    <SelectItem value="C">Clase C - Camiones pequeños</SelectItem>
-                    <SelectItem value="D">Clase D - Transporte de pasajeros</SelectItem>
-                    <SelectItem value="E">Clase E - Camiones grandes</SelectItem>
-                  </SelectContent>
-                </Select>
-                <input
-                  type="hidden"
-                  {...register("claseLicencia")}
-                />
-                {errors.claseLicencia && (
-                  <p className="text-red-500 text-sm">{errors.claseLicencia.message}</p>
-                )}
-              </div>
-
-              {/* Vencimiento Licencia */}
-              <div className="space-y-2">
-                <Label htmlFor="vencimientoLicencia">
-                  Vencimiento de Licencia <span className="text-red-500">*</span>
-                </Label>
-                
-                {/* Sugerencias de fechas comunes */}
-                {!watchedVencimiento && (
-                  <div className="mb-2">
-                    <p className="text-xs text-gray-500 mb-2">Fechas comunes:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {[1, 2, 3, 5].map(years => (
-                        <button
-                          key={years}
-                          type="button"
-                          onClick={() => setQuickDate(years)}
-                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                        >
-                          +{years} año{years > 1 ? 's' : ''}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="relative">
-                  <Input
-                    id="vencimientoLicencia"
-                    type="date"
-                    {...register("vencimientoLicencia")}
-                    min={new Date().toISOString().split('T')[0]}
-                    className={`bg-white/50 border-white/30 ${
-                      watchedVencimiento ? getLicenseStatusBadge(watchedVencimiento) : ''
-                    }`}
-                  />
+    <div className="container min-h-screen">
+      <Card className="max-w-4xl mx-auto shadow-xl border-0">
+        <CardHeader className="text-black rounded-t-lg py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/conductores")}
+                className="text-black hover:bg-blue-100 border-black/20"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg">
+                  <User className="w-8 h-8" />
                 </div>
-                
-                {/* Indicador visual de fecha seleccionada */}
-                {watchedVencimiento && (
-                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="text-sm text-blue-800">
-                      <strong>Fecha seleccionada:</strong> {new Date(watchedVencimiento).toLocaleDateString('es-AR', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <CardTitle className="text-2xl font-bold">
+                    {isEditing ? "Editar Conductor" : "Nuevo Conductor"}
+                  </CardTitle>
+                  <p className="text-gray-500 text-sm">
+                    {isEditing ? "Modifica los datos del conductor" : "Complete la información del nuevo conductor"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
 
-                {watchedVencimiento && (
-                  <div className="mt-2">
-                    {new Date(watchedVencimiento) < new Date() ? (
-                      <div className="flex items-center gap-2 text-red-600 text-sm">
-                        <span className="w-2 h-2 bg-red-600 rounded-full"></span>
-                        La licencia está vencida
-                      </div>
-                    ) : isLicenseExpiringSoon(watchedVencimiento) ? (
-                      <div className="flex items-center gap-2 text-yellow-600 text-sm">
-                        <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
-                        La licencia vence en {Math.ceil((new Date(watchedVencimiento).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} días
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-green-600 text-sm">
-                        <span className="w-2 h-2 bg-green-600 rounded-full"></span>
-                        Licencia vigente hasta {new Date(watchedVencimiento).toLocaleDateString('es-AR')}
-                      </div>
-                    )}
-                  </div>
-                )}
+        <CardContent className="p-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Información Personal */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Información Personal
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre Completo *
+                  </label>
+                  <Input
+                    {...register("nombre")}
+                    type="text"
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="Ingrese el nombre completo del conductor"
+                  />
+                  {errors.nombre && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.nombre.message}
+                    </p>
+                  )}
+                </div>
 
-                {errors.vencimientoLicencia && (
-                  <p className="text-red-500 text-sm">{errors.vencimientoLicencia.message}</p>
-                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    DNI *
+                  </label>
+                  <Input
+                    {...register("dni")}
+                    type="text"
+                    maxLength={8}
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="12345678"
+                    onInput={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      target.value = target.value.replace(/\D/g, '');
+                    }}
+                  />
+                  {errors.dni && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.dni.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/conductores")}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={!isValid || isSubmitting}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isEditing ? "Actualizar" : "Crear"} Conductor
-                  </>
-                )}
-              </Button>
+            {/* Información de Contacto */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Información de Contacto
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Correo Electrónico
+                  </label>
+                  <Input
+                    {...register("email")}
+                    type="email"
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="conductor@ejemplo.com"
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Número de Teléfono
+                  </label>
+                  <Input
+                    {...register("telefono")}
+                    type="tel"
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="+54 11 1234-5678"
+                  />
+                  {errors.telefono && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.telefono.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Información de Licencia */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                Información de Licencia
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Clase de Licencia *
+                  </label>
+                  <Select 
+                    value={watchedClaseLicencia} 
+                    onValueChange={(value) => setValue('claseLicencia', value, { shouldValidate: true })}
+                  >
+                    <SelectTrigger className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400">
+                      <SelectValue placeholder="Seleccionar clase de licencia" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A">Clase A - Motocicletas</SelectItem>
+                      <SelectItem value="B">Clase B - Automóviles</SelectItem>
+                      <SelectItem value="C">Clase C - Camiones pequeños</SelectItem>
+                      <SelectItem value="D">Clase D - Transporte de pasajeros</SelectItem>
+                      <SelectItem value="E">Clase E - Camiones grandes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" {...register("claseLicencia")} />
+                  {errors.claseLicencia && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.claseLicencia.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vencimiento de Licencia *
+                  </label>
+                  
+                  {/* Sugerencias de fechas comunes */}
+                  {!watchedVencimiento && (
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-2">Fechas comunes:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[1, 2, 3, 5].map(years => (
+                          <button
+                            key={years}
+                            type="button"
+                            onClick={() => setQuickDate(years)}
+                            className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors border border-blue-200"
+                          >
+                            +{years} año{years > 1 ? 's' : ''}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Input
+                    {...register("vencimientoLicencia")}
+                    type="date"
+                    min={new Date().toISOString().split('T')[0]}
+                    className={`w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400 ${
+                      watchedVencimiento ? getLicenseStatusBadge(watchedVencimiento) : ''
+                    }`}
+                  />
+                  
+                  {/* Indicador visual de fecha seleccionada */}
+                  {watchedVencimiento && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-sm text-blue-800">
+                        <strong>Fecha seleccionada:</strong> {new Date(watchedVencimiento).toLocaleDateString('es-AR', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </div>
+                      <div className="mt-2">
+                        {new Date(watchedVencimiento) < new Date() ? (
+                          <div className="flex items-center gap-2 text-red-600 text-sm">
+                            <span className="w-2 h-2 bg-red-600 rounded-full"></span>
+                            La licencia está vencida
+                          </div>
+                        ) : isLicenseExpiringSoon(watchedVencimiento) ? (
+                          <div className="flex items-center gap-2 text-yellow-600 text-sm">
+                            <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
+                            La licencia vence en {Math.ceil((new Date(watchedVencimiento).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} días
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-green-600 text-sm">
+                            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                            Licencia vigente hasta {new Date(watchedVencimiento).toLocaleDateString('es-AR')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {errors.vencimientoLicencia && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.vencimientoLicencia.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/conductores")}
+                  disabled={isSubmitting}
+                  className="px-8 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={!isValid || isSubmitting}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span className="font-medium">
+                        {isEditing ? 'Actualizando...' : 'Creando...'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Save className="w-5 h-5" />
+                      <span className="font-medium">
+                        {isEditing ? "Actualizar Conductor" : "Crear Conductor"}
+                      </span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>

@@ -6,7 +6,6 @@ import { z } from "zod";
 import { ArrowLeft, Save, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { showCreateSuccessToast, showUpdateSuccessToast, showErrorToast } from '@/lib/toast-utils';
 import { Input } from "@/components/ui/input";
 import { useCreateMetodoPago, useUpdateMetodoPago, useMetodoPago } from "../hooks/useMetodosPago";
@@ -100,19 +99,10 @@ export const MetodoPagoFormPage = () => {
 
   if (loadingData) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-            </div>
+      <div className="container min-h-screen">
+        <Card className="max-w-4xl mx-auto shadow-xl border-0">
+          <CardContent className="p-8">
+            <div className="text-center text-black">Cargando método de pago...</div>
           </CardContent>
         </Card>
       </div>
@@ -120,84 +110,103 @@ export const MetodoPagoFormPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver a Métodos de Pago
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <CreditCard className="h-6 w-6 text-green-600" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isEditing ? "Editar Método de Pago" : "Nuevo Método de Pago"}
-          </h1>
-          <p className="text-gray-600">
-            {isEditing ? "Modifica los datos del método de pago" : "Completa la información del nuevo método de pago"}
-          </p>
-        </div>
-      </div>
-
-      {/* Form */}
-      <Card className="backdrop-blur-sm bg-white/80 border-white/20 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Información del Método de Pago
-          </CardTitle>
+    <div className="container min-h-screen">
+      <Card className="max-w-4xl mx-auto shadow-xl border-0">
+        <CardHeader className="text-black rounded-t-lg py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="text-black hover:bg-blue-100 border-black/20"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Volver
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg">
+                  <CreditCard className="w-8 h-8" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold">
+                    {isEditing ? "Editar Método de Pago" : "Nuevo Método de Pago"}
+                  </CardTitle>
+                  <p className="text-gray-500 text-sm">
+                    {isEditing ? "Modifica los datos del método de pago" : "Complete la información del nuevo método de pago"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Nombre */}
-            <div className="space-y-2">
-              <Label htmlFor="nombre">
-                Nombre del Método de Pago <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="nombre"
-                {...register("nombre")}
-                placeholder="Ej: Efectivo, Tarjeta de Crédito, Transferencia Bancaria"
-                className="bg-white/50 border-white/30"
-              />
-              {errors.nombre && (
-                <p className="text-red-500 text-sm">{errors.nombre.message}</p>
-              )}
-              <p className="text-sm text-gray-500">
-                Ingresa un nombre descriptivo para el método de pago
-              </p>
+
+        <CardContent className="p-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Información Básica */}
+            <div className="rounded-xl p-6 border border-gray-300 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Información Básica
+              </h3>
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre del Método de Pago *
+                  </label>
+                  <Input
+                    {...register("nombre")}
+                    type="text"
+                    className="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white shadow-sm transition-all duration-200 hover:border-gray-400"
+                    placeholder="Ej: Efectivo, Tarjeta de Crédito, Transferencia Bancaria"
+                  />
+                  {errors.nombre && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {errors.nombre.message}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-500 mt-2">
+                    Ingresa un nombre descriptivo para el método de pago
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBack}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={!isValid || isSubmitting}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isEditing ? "Actualizar" : "Crear"} Método de Pago
-                  </>
-                )}
-              </Button>
+            {/* Botones */}
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={isSubmitting}
+                  className="px-8 py-3 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={!isValid || isSubmitting}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span className="font-medium">
+                        {isEditing ? 'Actualizando...' : 'Creando...'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Save className="w-5 h-5" />
+                      <span className="font-medium">
+                        {isEditing ? "Actualizar Método de Pago" : "Crear Método de Pago"}
+                      </span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>
