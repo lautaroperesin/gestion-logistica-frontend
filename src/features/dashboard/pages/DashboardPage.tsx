@@ -47,8 +47,13 @@ export const DashboardPage = () => {
     );
   }
 
-  // Calcular tendencias
-  const ingresosChange = stats ? ((stats.ingresosEsteMes - stats.ingresosMesAnterior) / stats.ingresosMesAnterior * 100) : 0;
+  // Calcular tendencias con validación segura
+  const ingresosChange = stats && 
+    stats.ingresosEsteMes !== undefined && 
+    stats.ingresosMesAnterior !== undefined && 
+    stats.ingresosMesAnterior > 0
+    ? ((stats.ingresosEsteMes - stats.ingresosMesAnterior) / stats.ingresosMesAnterior * 100)
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -63,9 +68,9 @@ export const DashboardPage = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Envíos"
-          value={stats?.totalEnvios || 0}
+          value={stats?.enviosEsteMes || 0}
           icon={<Package />}
-          description={`${stats?.enviosEsteMes || 0} este mes`}
+          description={`Este mes`}
         />
         
         <StatsCard
@@ -88,10 +93,9 @@ export const DashboardPage = () => {
         />
         
         <StatsCard
-          title="Clientes Activos"
+          title="Clientes"
           value={stats?.totalClientes || 0}
           icon={<Users />}
-          description={`+${stats?.clientesNuevosEsteMes || 0} nuevos este mes`}
         />
       </div>
 
@@ -119,10 +123,10 @@ export const DashboardPage = () => {
           icon={<Truck />}
           description={`${stats?.vehiculosEnMantenimiento || 0} en mantenimiento`}
         />
-        
+
         <StatsCard
-          title="Eficiencia"
-          value={`${stats?.porcentajeEntregasATiempo || 0}%`}
+          title="Flota en Servicio"
+          value={`${stats?.vehiculosActivos || 0}`}
           icon={<Zap />}
           description="Entregas a tiempo"
           className="border-purple-200"
@@ -160,12 +164,6 @@ export const DashboardPage = () => {
                 </p>
               </div>
               <FileText className="h-8 w-8 text-yellow-600" />
-            </div>
-            
-            <div className="text-center pt-2">
-              <p className="text-xs text-gray-500">
-                Tiempo promedio de entrega: {stats?.tiempoPromedioEntrega || 0} días
-              </p>
             </div>
           </CardContent>
         </Card>

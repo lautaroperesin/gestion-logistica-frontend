@@ -77,21 +77,21 @@ export const RecentActivity = () => {
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{envio.numeroEnvio}</span>
+                    <span className="font-medium text-sm">{envio.numeroSeguimiento || 'Sin número'}</span>
                     <Badge 
                       variant="outline" 
-                      className={getEstadoColor(envio.estado)}
+                      className={getEstadoColor(envio.estado || '')}
                     >
-                      {envio.estado}
+                      {envio.estado || 'Sin estado'}
                     </Badge>
                   </div>
                   <div className="text-sm text-gray-600">
-                    <span className="font-medium">{envio.cliente}</span>
+                    <span className="font-medium">{envio.cliente || 'Cliente no disponible'}</span>
                     <span className="text-gray-400 mx-2">→</span>
-                    <span>{envio.destino}</span>
+                    <span>{envio.destino || 'Destino no disponible'}</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {format(envio.fechaCreacion, "d 'de' MMMM, yyyy", { locale: es })}
+                    {envio.fechaCreacion ? format(envio.fechaCreacion, "d 'de' MMMM, yyyy", { locale: es }) : 'Fecha no disponible'}
                   </div>
                 </div>
                 <Button asChild variant="ghost" size="sm" className="shrink-0">

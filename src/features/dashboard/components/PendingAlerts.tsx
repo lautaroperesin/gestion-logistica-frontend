@@ -34,7 +34,15 @@ export const PendingAlerts = () => {
   }
 
   const totalFacturasVencidas = facturasVencidas?.length || 0;
-  const montoTotalVencido = facturasVencidas?.reduce((sum, factura) => sum + factura.monto, 0) || 0;
+  const montoTotalVencido = facturasVencidas?.reduce((sum, factura) => sum + (factura.saldoPendiente || 0), 0) || 0;
+
+  const calcularDiasVencida = (fechaVencimiento: Date | null | undefined): number => {
+    if (!fechaVencimiento) return 0;
+    const hoy = new Date();
+    const vencimiento = new Date(fechaVencimiento);
+    const diffTime = hoy.getTime() - vencimiento.getTime();
+    return Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+  };
 
   return (
     <Card className="border-red-200">
@@ -81,34 +89,37 @@ export const PendingAlerts = () => {
 
             {/* Lista de facturas vencidas */}
             <div className="space-y-3">
-              {facturasVencidas?.slice(0, 3).map((factura) => (
-                <div 
-                  key={factura.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-red-100 bg-red-50/50"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm">{factura.numeroFactura}</span>
-                      <Badge variant="destructive" className="text-xs">
-                        {factura.diasVencida} día{factura.diasVencida > 1 ? 's' : ''}
-                      </Badge>
+              {facturasVencidas?.slice(0, 3).map((factura) => {
+                const diasVencida = calcularDiasVencida(factura.fechaVencimiento);
+                return (
+                  <div 
+                    key={factura.idFactura}
+                    className="flex items-center justify-between p-3 rounded-lg border border-red-100 bg-red-50/50"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">{factura.numeroFactura || 'Sin número'}</span>
+                        <Badge variant="destructive" className="text-xs">
+                          {diasVencida} día{diasVencida > 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">{factura.cliente?.nombre || 'Cliente no disponible'}</span>
+                        <span className="text-gray-400 mx-2">•</span>
+                        <span className="font-medium">${(factura.saldoPendiente || 0).toLocaleString()}</span>
+                      </div>
+                      <div className="text-xs text-red-600 mt-1">
+                        Vencida: {factura.fechaVencimiento ? format(factura.fechaVencimiento, "d 'de' MMMM, yyyy", { locale: es }) : 'Fecha no disponible'}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">{factura.cliente}</span>
-                      <span className="text-gray-400 mx-2">•</span>
-                      <span className="font-medium">${factura.monto.toLocaleString()}</span>
-                    </div>
-                    <div className="text-xs text-red-600 mt-1">
-                      Vencida: {format(factura.fechaVencimiento, "d 'de' MMMM, yyyy", { locale: es })}
-                    </div>
+                    <Button asChild variant="ghost" size="sm" className="shrink-0">
+                      <Link to={`/facturas/${factura.idFactura}`}>
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
                   </div>
-                  <Button asChild variant="ghost" size="sm" className="shrink-0">
-                    <Link to={`/facturas/${factura.id}`}>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
